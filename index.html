@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Garage</title>
+<title>Mi Garaje</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,sans-serif;background:#f4f4f2;color:#1a1a1a;font-size:14px}
@@ -18,7 +18,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f4f4f2;color:#1a
 .vitem.active{background:#f0f4ff;border-left-color:#3b6ef5}
 .vname{font-weight:500;font-size:13px}
 .vplate{font-size:11px;color:#888;margin-top:1px;font-family:monospace}
-.add-vbtn{margin:8px 12px 12px;padding:8px;font-size:12px;background:#f0f4ff;border:1px solid #c5d0fa;border-radius:8px;cursor:pointer;color:#3b6ef5;width:calc(100% - 24px);font-weight:500}
+.add-vbtn{margin:8px 12px 4px;padding:8px;font-size:12px;background:#f0f4ff;border:1px solid #c5d0fa;border-radius:8px;cursor:pointer;color:#3b6ef5;width:calc(100% - 24px);font-weight:500}
+.logout-btn{margin:4px 12px 12px;padding:5px;font-size:11px;background:none;border:none;color:#bbb;cursor:pointer;width:calc(100% - 24px)}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 .tabs{display:flex;border-bottom:1px solid #e5e5e2;background:#fff;padding:0 12px;overflow-x:auto;flex-shrink:0;gap:2px}
 .tab{padding:10px 12px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:#888;white-space:nowrap;flex-shrink:0}
@@ -30,13 +31,18 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f4f4f2;color:#1a
 .add-btn{padding:5px 12px;font-size:12px;background:#3b6ef5;color:#fff;border:none;border-radius:7px;cursor:pointer;font-weight:500}
 .tbl-wrap{border:1px solid #e5e5e2;border-radius:10px;overflow:auto;background:#fff}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{padding:8px 10px;text-align:left;font-weight:600;font-size:11px;color:#666;background:#f8f8f6;border-bottom:1px solid #e5e5e2;white-space:nowrap}
+th{padding:8px 10px;text-align:left;font-weight:600;font-size:11px;color:#666;background:#f8f8f6;border-bottom:1px solid #e5e5e2;white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{background:#eeeee8}
+th.sort-asc::after{content:' ▲';opacity:.6;font-size:10px}
+th.sort-desc::after{content:' ▼';opacity:.6;font-size:10px}
+th.sortable::after{content:' ⇅';opacity:.25;font-size:10px}
 td{padding:7px 10px;border-bottom:1px solid #f0f0ec;color:#1a1a1a;vertical-align:top}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#fafaf8}
 .badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:500}
 .b-ok{background:#e6f4ea;color:#1a7a3a}.b-warn{background:#fff8e1;color:#b45309}
 .b-danger{background:#fdecea;color:#b91c1c}.b-info{background:#e8f0fe;color:#1a56d6}
+.b-mec{background:#fde8ff;color:#7e22ce}.b-est{background:#fff0e0;color:#b45309}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-start;justify-content:center;padding:30px 8px;z-index:100;overflow-y:auto}
 .modal{background:#fff;border-radius:12px;padding:20px;width:560px;max-width:98vw;box-shadow:0 8px 32px rgba(0,0,0,.12)}
 .modal-title{font-size:15px;font-weight:600;margin-bottom:14px}
@@ -65,8 +71,10 @@ textarea{resize:vertical;min-height:60px}
 .pi-urg{background:#fdecea;border-color:#f5c2bf;color:#b91c1c}
 .pi-soon{background:#fff8e1;border-color:#fde68a;color:#b45309}
 .pi-ok{background:#e6f4ea;border-color:#a8d5b5;color:#1a7a3a}
+.notes-box{background:#fff;border:1px solid #e5e5e2;border-radius:12px;padding:14px 16px;margin-bottom:12px}
 .del-btn{padding:2px 7px;font-size:11px;border:1px solid #fca5a5;border-radius:5px;background:transparent;color:#b91c1c;cursor:pointer}
 .edt-btn{padding:2px 7px;font-size:11px;border:1px solid #ddd;border-radius:5px;background:transparent;color:#555;cursor:pointer}
+.done-btn{padding:2px 7px;font-size:11px;border:1px solid #a8d5b5;border-radius:5px;background:transparent;color:#1a7a3a;cursor:pointer}
 .acell{display:flex;gap:3px}
 .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:12px}
 .photo-card{border:1px solid #e5e5e2;border-radius:10px;overflow:hidden;position:relative;background:#fff}
@@ -93,18 +101,83 @@ textarea{resize:vertical;min-height:60px}
 .hero-photo{width:100%;height:180px;object-fit:cover;border-radius:12px;margin-bottom:12px;border:1px solid #e5e5e2}
 .notif{position:fixed;bottom:16px;right:16px;background:#1a1a1a;color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;z-index:200;opacity:0;transition:opacity .25s;pointer-events:none}
 .notif.show{opacity:1}
+.login-wrap{display:flex;align-items:center;justify-content:center;height:100vh;background:#f4f4f2}
+.login-box{background:#fff;border-radius:16px;padding:32px;width:340px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.login-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.login-sub{font-size:13px;color:#888;margin-bottom:20px}
+.login-field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.login-err{font-size:12px;color:#b91c1c;margin-top:8px;min-height:16px}
+.login-btn{width:100%;padding:10px;font-size:14px;font-weight:600;background:#3b6ef5;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-top:4px}
+.balance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:20px}
+.bal-card{background:#fff;border:1px solid #e5e5e2;border-radius:10px;padding:14px}
+.bal-label{font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.bal-amount{font-size:20px;font-weight:700;margin-top:4px}
+.bal-count{font-size:11px;color:#aaa;margin-top:2px}
+.bal-total{background:#3b6ef5;color:#fff;border-color:#3b6ef5}
+.bal-total .bal-label,.bal-total .bal-count{color:rgba(255,255,255,.7)}
+.year-sel{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.task-done td{opacity:.5;text-decoration:line-through}
 </style>
 </head>
 <body>
 <div class="notif" id="notif"></div>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SB_URL='https://wxuswkgzrshayrposndz.supabase.co';
+const SB_KEY='sb_publishable_GkWMSMin0tJH0qocqOSZyw_pGE7mqeh';
+function H(t){return{apikey:SB_KEY,Authorization:`Bearer ${t||SB_KEY}`,'Content-Type':'application/json'};}
+async function sbSignIn(e,p){const r=await fetch(`${SB_URL}/auth/v1/token?grant_type=password`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p})});return r.json();}
+async function sbSignOut(t){await fetch(`${SB_URL}/auth/v1/logout`,{method:'POST',headers:H(t)});}
+async function sbAll(t){const r=await fetch(`${SB_URL}/rest/v1/vehicles?select=*&order=updated_at.asc`,{headers:H(t)});return r.json();}
+async function sbUpsert(v,t){await fetch(`${SB_URL}/rest/v1/vehicles`,{method:'POST',headers:{...H(t),Prefer:'resolution=merge-duplicates'},body:JSON.stringify({id:v.id,data:v,updated_at:new Date().toISOString()})});}
+async function sbDel(id,t){await fetch(`${SB_URL}/rest/v1/vehicles?id=eq.${id}`,{method:'DELETE',headers:H(t)});}
+async function sbUpload(path,b64,mime,t){const blob=await(await fetch(b64)).blob();const r=await fetch(`${SB_URL}/storage/v1/object/garage-files/${path}`,{method:'POST',headers:{apikey:SB_KEY,Authorization:`Bearer ${t}`,'Content-Type':mime||'application/octet-stream'},body:blob});return r.ok?`${SB_URL}/storage/v1/object/public/garage-files/${path}`:null;}
+async function sbDelFile(path,t){await fetch(`${SB_URL}/storage/v1/object/garage-files/${path}`,{method:'DELETE',headers:{apikey:SB_KEY,Authorization:`Bearer ${t}`}});}
+
+let session=null,vehicles=[],currentId=null,currentTab='resumen',saveTimer=null;
+let SS={arreglos:{c:null,d:'desc'},aceite:{c:null,d:'desc'},ruedas:{c:null,d:'desc'},combustible:{c:null,d:'desc'},mantenimientos:{c:null,d:'desc'},tareas:{c:null,d:'desc'}};
+// AUTH
+function renderLogin(err=''){document.getElementById('root').innerHTML=`<div class="login-wrap"><div class="login-box"><div class="login-title">🔧 Mi Garaje</div><div class="login-sub">Inicia sesión para continuar</div><div class="login-field"><label>Email</label><input type="email" id="l_email" placeholder="tu@email.com"></div><div class="login-field"><label>Contraseña</label><input type="password" id="l_pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div><div class="login-err" id="l_err">${err}</div><button class="login-btn" onclick="doLogin()">Entrar</button></div></div>`;}
+async function doLogin(){const email=document.getElementById('l_email').value,pass=document.getElementById('l_pass').value;if(!email||!pass){document.getElementById('l_err').textContent='Rellena todos los campos';return;}document.getElementById('l_err').textContent='Comprobando...';const d=await sbSignIn(email,pass);if(d.access_token){session=d;localStorage.setItem('gs',JSON.stringify({a:d.access_token}));await loadData();}else document.getElementById('l_err').textContent='Email o contraseña incorrectos';}
+async function doLogout(){if(session)await sbSignOut(session.access_token);session=null;vehicles=[];currentId=null;localStorage.removeItem('gs');renderLogin();}
+
+// DATA
+async function loadData(){renderShell();try{const rows=await sbAll(session.access_token);vehicles=Array.isArray(rows)?rows.map(r=>r.data):[];if(vehicles.length&&!currentId)currentId=vehicles[0].id;}catch(e){notif('Error cargando datos');}render();}
+function scheduleSave(vid){clearTimeout(saveTimer);saveTimer=setTimeout(()=>doSave(vid||currentId),700);}
+async function doSave(vid){const v=vehicles.find(x=>x.id===vid);if(v)await sbUpsert(v,session.access_token).catch(()=>notif('Error al guardar'));}
+
+// HELPERS
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function gf(id){return document.getElementById('f_'+id)?.value||'';}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function curV(){return vehicles.find(x=>x.id===currentId);}
+function notif(m){const n=document.getElementById('notif');n.textContent=m;n.classList.add('show');setTimeout(()=>n.classList.remove('show'),2500);}
+function modal(h){document.getElementById('modal-area').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()">${h}</div>`;}
+function closeModal(){document.getElementById('modal-area').innerHTML='';}
+function fi(id,l,v='',t='text'){return `<div class="ff"><label>${l}</label><input type="${t}" id="f_${id}" value="${esc(v)}"></div>`;}
+function fta(id,l,v=''){return `<div class="ff s2"><label>${l}</label><textarea id="f_${id}">${esc(v)}</textarea></div>`;}
+function fld(l,v){return `<div class="vhf"><label>${l}</label><span>${esc(v)||'—'}</span></div>`;}
+function noRows(n){return `<tr><td colspan="${n}" style="text-align:center;color:#aaa;padding:18px">Sin registros</td></tr>`;}
+function eur(v){return v&&v!==''?Number(v).toFixed(2)+' €':'—';}
+function fileToBase64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(f);});}
+function delRec(arr,rid){const v=curV();if(!v)return;v[arr]=(v[arr]||[]).filter(r=>r.id!==rid);scheduleSave();render();}
+function itvCls(d){if(!d)return'';const diff=(new Date(d)-new Date())/86400000;return diff<0?'itv-danger':diff<90?'itv-warn':'itv-ok';}
+function itvLabel(d){if(!d)return'—';const c=itvCls(d);const t={'itv-danger':'⚠ Caducada','itv-warn':'⚡ Próxima','itv-ok':'✓ Vigente'};const b={'itv-danger':'b-danger','itv-warn':'b-warn','itv-ok':'b-ok'};return `<span class="${c}">${d} <span class="badge ${b[c]}">${t[c]}</span></span>`;}
+
+// SORT
+function sortData(arr,sec){const s=SS[sec];if(!s||!s.c)return[...arr];return[...arr].sort((a,b)=>{let va=a[s.c],vb=b[s.c];const nums=['kms','precio','litros','preciolitro','importe'];if(nums.includes(s.c)){va=parseFloat(va)||0;vb=parseFloat(vb)||0;}else{va=(va||'').toString().toLowerCase();vb=(vb||'').toString().toLowerCase();}if(va<vb)return s.d==='asc'?-1:1;if(va>vb)return s.d==='asc'?1:-1;return 0;});}
+function th(sec,col,label){const s=SS[sec];const cls=s.c===col?(s.d==='asc'?'sort-asc':'sort-desc'):'sortable';return `<th class="${cls}" onclick="tsort('${sec}','${col}')">${label}</th>`;}
+function tsort(sec,col){const s=SS[sec];if(s.c===col)s.d=s.d==='asc'?'desc':'asc';else{s.c=col;s.d='desc';}render();}
+
+// SHELL
+function renderShell(){document.getElementById('root').innerHTML=`
 <div class="app">
   <div class="sidebar">
-    <div class="sb-head">
-      <div class="sb-title">🔧 Mi Garage</div>
-      <div class="sb-sub" id="vcount">Cargando...</div>
-    </div>
+    <div class="sb-head"><div class="sb-title">🔧 Mi Garaje</div><div class="sb-sub" id="vcount">Cargando...</div></div>
     <div class="vlist" id="vlist"></div>
     <button class="add-vbtn" onclick="openAddV()">+ Añadir vehículo</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
   </div>
   <div class="main">
     <div class="tabs" id="tabs" style="display:none">
@@ -114,100 +187,61 @@ textarea{resize:vertical;min-height:60px}
       <div class="tab"        data-tab="ruedas"         onclick="setTab('ruedas')">Ruedas</div>
       <div class="tab"        data-tab="mantenimientos" onclick="setTab('mantenimientos')">Mantenimientos</div>
       <div class="tab"        data-tab="referencias"    onclick="setTab('referencias')">Referencias</div>
+      <div class="tab"        data-tab="combustible"    onclick="setTab('combustible')">Combustible</div>
+      <div class="tab"        data-tab="tareas"         onclick="setTab('tareas')">📋 Tareas</div>
       <div class="tab"        data-tab="fotos"          onclick="setTab('fotos')">Fotos</div>
       <div class="tab"        data-tab="documentos"     onclick="setTab('documentos')">Documentos</div>
+      <div class="tab"        data-tab="balance"        onclick="setTab('balance')">💰 Balance</div>
     </div>
-    <div class="content" id="content"><div class="empty">🚗<br>Cargando datos...</div></div>
+    <div class="content" id="content"><div class="empty">🔧<br>Cargando...</div></div>
   </div>
 </div>
-<div id="modal-area"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
-// ── SUPABASE ──────────────────────────────────────────────────────────────
-const SB_URL = 'https://wxuswkgzrshayrposndz.supabase.co';
-const SB_KEY = 'sb_publishable_GkWMSMin0tJH0qocqOSZyw_pGE7mqeh';
-const H = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' };
+<div id="modal-area"></div>`;}
 
-async function sbAll()           { const r=await fetch(`${SB_URL}/rest/v1/vehicles?select=*&order=updated_at.asc`,{headers:H}); return r.json(); }
-async function sbUpsert(v)       { await fetch(`${SB_URL}/rest/v1/vehicles`,{method:'POST',headers:{...H,Prefer:'resolution=merge-duplicates'},body:JSON.stringify({id:v.id,data:v,updated_at:new Date().toISOString()})}); }
-async function sbDel(id)         { await fetch(`${SB_URL}/rest/v1/vehicles?id=eq.${id}`,{method:'DELETE',headers:H}); }
-async function sbUpload(path,b64,mime){
-  const blob=await(await fetch(b64)).blob();
-  const r=await fetch(`${SB_URL}/storage/v1/object/garage-files/${path}`,{method:'POST',headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`,'Content-Type':mime||'application/octet-stream'},body:blob});
-  return r.ok?`${SB_URL}/storage/v1/object/public/garage-files/${path}`:null;
-}
-async function sbDelFile(path)   { await fetch(`${SB_URL}/storage/v1/object/garage-files/${path}`,{method:'DELETE',headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`}}); }
-
-// ── STATE ─────────────────────────────────────────────────────────────────
-let vehicles=[], currentId=null, currentTab='resumen', saveTimer=null;
-
-async function loadData(){
-  try{ const rows=await sbAll(); vehicles=rows.map(r=>r.data); if(vehicles.length&&!currentId) currentId=vehicles[0].id; }
-  catch(e){ notif('Error conectando con Supabase'); }
-  render();
-}
-function scheduleSave(vid){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>doSave(vid||currentId),600); }
-async function doSave(vid){ const v=vehicles.find(x=>x.id===vid); if(v) await sbUpsert(v).catch(()=>notif('Error al guardar')); }
-
-// ── HELPERS ───────────────────────────────────────────────────────────────
-function uid()  { return Date.now().toString(36)+Math.random().toString(36).slice(2); }
-function gf(id) { return document.getElementById('f_'+id)?.value||''; }
-function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function curV() { return vehicles.find(x=>x.id===currentId); }
-function notif(m){ const n=document.getElementById('notif'); n.textContent=m; n.classList.add('show'); setTimeout(()=>n.classList.remove('show'),2500); }
-function modal(h){ document.getElementById('modal-area').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()">${h}</div>`; }
-function closeModal(){ document.getElementById('modal-area').innerHTML=''; }
-function fi(id,l,v='',t='text'){ return `<div class="ff"><label>${l}</label><input type="${t}" id="f_${id}" value="${esc(v)}"></div>`; }
-function fld(l,v){ return `<div class="vhf"><label>${l}</label><span>${esc(v)||'—'}</span></div>`; }
-function noRows(n){ return `<tr><td colspan="${n}" style="text-align:center;color:#aaa;padding:18px">Sin registros</td></tr>`; }
-function delRec(arr,rid){ const v=curV(); if(!v)return; v[arr]=(v[arr]||[]).filter(r=>r.id!==rid); scheduleSave(); render(); }
-function itvCls(d){ if(!d)return ''; const diff=(new Date(d)-new Date())/86400000; return diff<0?'itv-danger':diff<90?'itv-warn':'itv-ok'; }
-function itvLabel(d){
-  if(!d)return '—'; const c=itvCls(d);
-  const t={'itv-danger':'⚠ Caducada','itv-warn':'⚡ Próxima','itv-ok':'✓ Vigente'};
-  const b={'itv-danger':'b-danger','itv-warn':'b-warn','itv-ok':'b-ok'};
-  return `<span class="${c}">${d} <span class="badge ${b[c]}">${t[c]}</span></span>`;
-}
-function fileToBase64(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsDataURL(f); }); }
-
-// ── RENDER ────────────────────────────────────────────────────────────────
 function render(){
+  if(!document.getElementById('vcount'))return;
   document.getElementById('vcount').textContent=`${vehicles.length} vehículo${vehicles.length!==1?'s':''}`;
-  document.getElementById('vlist').innerHTML=vehicles.map(v=>`
-    <div class="vitem ${v.id===currentId?'active':''}" onclick="selV('${v.id}')">
-      <div class="vname">${esc(v.marca||'—')} ${esc(v.modelo||'')}</div>
-      <div class="vplate">${esc(v.matricula||'Sin matrícula')}</div>
-    </div>`).join('');
-  const tabs=document.getElementById('tabs'), cnt=document.getElementById('content');
-  if(!currentId){ tabs.style.display='none'; cnt.innerHTML='<div class="empty">🚗<br>Selecciona o añade un vehículo</div>'; return; }
+  document.getElementById('vlist').innerHTML=vehicles.map(v=>`<div class="vitem ${v.id===currentId?'active':''}" onclick="selV('${v.id}')"><div class="vname">${esc(v.marca||'—')} ${esc(v.modelo||'')}</div><div class="vplate">${esc(v.matricula||'Sin matrícula')}</div></div>`).join('');
+  const tabs=document.getElementById('tabs'),cnt=document.getElementById('content');
+  if(!currentId){tabs.style.display='none';cnt.innerHTML='<div class="empty">🔧<br>Selecciona o añade un vehículo</div>';return;}
   tabs.style.display='flex';
   tabs.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
-  const v=curV(); if(!v)return;
-  cnt.innerHTML=({resumen,arreglos,aceite,ruedas,mantenimientos,referencias,fotos,documentos}[currentTab]||resumen)(v);
+  const v=curV();if(!v)return;
+  const map={resumen,arreglos,aceite,ruedas,mantenimientos,referencias,combustible,tareas,fotos,documentos,balance};
+  cnt.innerHTML=(map[currentTab]||resumen)(v);
 }
-function selV(id){ currentId=id; currentTab='resumen'; render(); }
-function setTab(t){ currentTab=t; render(); }
-
-// ── RESUMEN ───────────────────────────────────────────────────────────────
+function selV(id){currentId=id;currentTab='resumen';render();}
+function setTab(t){currentTab=t;render();}
+// RESUMEN
 function resumen(v){
   const hero=(v.fotos||[])[0]?`<img class="hero-photo" src="${v.fotos[0].url||v.fotos[0].data}" alt="foto">`:'';
+  const pendTareas=(v.tareas||[]).filter(t=>!t.done).length;
   let pending='';
   if(v._kmCheck&&(v.mantenimientos||[]).length){
     const km=parseFloat(v._kmCheck);
     pending='<div class="plist">'+v.mantenimientos.map(m=>{
       const last=(v.histMantenimientos||[]).filter(h=>h.tipo===m.tipo).sort((a,b)=>b.kms-a.kms)[0];
-      const next=(last?parseFloat(last.kms):0)+parseFloat(m.intervalKm), rem=next-km;
+      const next=(last?parseFloat(last.kms):0)+parseFloat(m.intervalKm),rem=next-km;
       const cls=rem<=0?'pi-urg':rem<parseFloat(m.intervalKm)*0.1?'pi-soon':'pi-ok';
       const lbl=rem<=0?`VENCIDO por ${Math.abs(Math.round(rem)).toLocaleString()} km`:`En ${Math.round(rem).toLocaleString()} km (próximo: ${Math.round(next).toLocaleString()} km)`;
       return `<div class="pi ${cls}"><strong>${esc(m.tipo)}</strong> — ${lbl}</div>`;
     }).join('')+'</div>';
   }
-  return `${hero}<div class="vh-card">
+  return `${hero}
+  <div class="vh-card">
     <div class="vh-top">
       <div class="vh-name">${esc(v.marca||'—')} ${esc(v.modelo||'')} <span style="font-size:13px;font-weight:400;color:#888">${esc(v.variante||'')}</span></div>
-      <div style="display:flex;gap:6px"><button class="edt-btn" onclick="openEditV('${v.id}')">Editar ficha</button><button class="del-btn" onclick="delV('${v.id}')">Eliminar</button></div>
+      <div style="display:flex;gap:6px">
+        ${pendTareas?`<span class="badge b-warn" style="cursor:pointer" onclick="setTab('tareas')">📋 ${pendTareas} tarea${pendTareas!==1?'s':''} pendiente${pendTareas!==1?'s':''}</span>`:''}
+        <button class="edt-btn" onclick="openEditV('${v.id}')">Editar ficha</button>
+        <button class="del-btn" onclick="delV('${v.id}')">Eliminar</button>
+      </div>
     </div>
-    <div class="vh-grid">${fld('Matrícula',v.matricula)}${fld('Bastidor (VIN)',v.bastidor)}${fld('Cód. motor',v.codMotor)}${fld('Variante',v.variante)}${fld('Fecha compra',v.fechaCompra)}${fld('Precio',v.precio?v.precio+' €':'')}
+    <div class="vh-grid">
+      ${fld('Matrícula',v.matricula)}${fld('Bastidor (VIN)',v.bastidor)}${fld('Cód. motor',v.codMotor)}
+      ${fld('Variante',v.variante)}${fld('Cód. pintura',v.codPintura)}
+      ${fld('Fecha compra',v.fechaCompra)}${fld('Km en compra',v.kmCompra?Number(v.kmCompra).toLocaleString()+' km':'')}
+      ${fld('Precio compra',v.precio?v.precio+' €':'')}
       <div class="vhf"><label>Próxima ITV</label><span>${itvLabel(v.itv)}</span></div>
     </div>
   </div>
@@ -216,117 +250,161 @@ function resumen(v){
     <div class="km-row"><input type="number" placeholder="Km actuales del vehículo" value="${esc(v._kmCheck||'')}" oninput="updKm('${v.id}',this.value)"><span style="font-size:12px;color:#888">Introduce los km para ver pendientes</span></div>
     ${pending}
   </div>
-  <div class="export-bar"><button class="exp-btn" onclick="exportExcel('${v.id}')">⬇ Exportar Excel</button><button class="exp-btn" onclick="exportPDF('${v.id}')">⬇ Exportar PDF</button></div>`;
+  <div class="notes-box">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">Observaciones generales</div>
+    <textarea style="width:100%;min-height:70px;font-size:13px;border:1px solid #ddd;border-radius:7px;padding:8px;resize:vertical" placeholder="Anotaciones, recordatorios, detalles del vehículo..." oninput="updNotes('${v.id}',this.value)">${esc(v.notas||'')}</textarea>
+  </div>
+  <div class="export-bar">
+    <button class="exp-btn" onclick="exportExcel('${v.id}')">⬇ Exportar Excel</button>
+    <button class="exp-btn" onclick="exportPDF('${v.id}')">⬇ Exportar PDF</button>
+  </div>`;
 }
-function updKm(id,val){ const v=vehicles.find(x=>x.id===id); if(!v)return; v._kmCheck=val; scheduleSave(id); render(); }
+function updKm(id,val){const v=vehicles.find(x=>x.id===id);if(!v)return;v._kmCheck=val;scheduleSave(id);render();}
+function updNotes(id,val){const v=vehicles.find(x=>x.id===id);if(!v)return;v.notas=val;scheduleSave(id);}
 
-// ── ARREGLOS ──────────────────────────────────────────────────────────────
+// ARREGLOS
 function arreglos(v){
-  const rows=(v.arreglos||[]).map(r=>`<tr><td>${esc(r.cambio)}</td><td>${esc(r.marca)}</td><td>${esc(r.condicion)}</td><td>${r.kms?Number(r.kms).toLocaleString():'—'}</td><td>${esc(r.fecha)}</td><td>${esc(r.taller)}</td><td style="max-width:140px;word-break:break-word">${esc(r.observaciones)}</td><td><div class="acell"><button class="edt-btn" onclick="editArreglo('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('arreglos','${r.id}')">×</button></div></td></tr>`).join('');
+  const rows=sortData(v.arreglos||[],'arreglos').map(r=>`<tr><td>${esc(r.cambio)}</td><td>${esc(r.marca)}</td><td>${esc(r.condicion)}</td><td>${r.kms?Number(r.kms).toLocaleString():'—'}</td><td>${esc(r.fecha)}</td><td>${esc(r.taller)}</td><td>${eur(r.precio)}</td><td style="max-width:120px;word-break:break-word">${esc(r.observaciones)}</td><td><div class="acell"><button class="edt-btn" onclick="editArreglo('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('arreglos','${r.id}')">×</button></div></td></tr>`).join('');
   return `<div class="sec-hdr"><div class="sec-title">Arreglos y reparaciones</div><button class="add-btn" onclick="addArreglo('${v.id}')">+ Añadir</button></div>
-  <div class="tbl-wrap"><table><thead><tr><th>Cambio/Pieza</th><th>Marca</th><th>Nuevo/Ocasión</th><th>Km</th><th>Fecha</th><th>Taller/Casa</th><th>Observaciones</th><th></th></tr></thead><tbody>${rows||noRows(8)}</tbody></table></div>`;
+  <div class="tbl-wrap"><table><thead><tr>${th('arreglos','cambio','Cambio/Pieza')}${th('arreglos','marca','Marca')}${th('arreglos','condicion','Nuevo/Ocas.')}${th('arreglos','kms','Km')}${th('arreglos','fecha','Fecha')}${th('arreglos','taller','Taller/Casa')}${th('arreglos','precio','Precio')}${th('arreglos','observaciones','Observaciones')}<th></th></tr></thead><tbody>${rows||noRows(9)}</tbody></table></div>`;
 }
-function addArreglo(vid){ modal(`<div class="modal"><div class="modal-title">Nuevo arreglo</div><div class="fg">${fi('cambio','Cambio / Pieza')}${fi('marca','Marca')}<div class="ff"><label>Nuevo / Ocasión</label><select id="f_condicion"><option>Nuevo</option><option>Ocasión</option></select></div>${fi('kms','Km','','number')}${fi('fecha','Fecha','','date')}${fi('taller','Taller / Casa')}<div class="ff s2"><label>Observaciones</label><textarea id="f_obs"></textarea></div></div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveArreglo('${vid}')">Guardar</button></div></div>`); }
-function editArreglo(vid,rid){ const r=(curV()?.arreglos||[]).find(x=>x.id===rid)||{}; modal(`<div class="modal"><div class="modal-title">Editar arreglo</div><div class="fg">${fi('cambio','Cambio / Pieza',r.cambio)}${fi('marca','Marca',r.marca)}<div class="ff"><label>Nuevo / Ocasión</label><select id="f_condicion"><option ${r.condicion==='Nuevo'?'selected':''}>Nuevo</option><option ${r.condicion==='Ocasión'?'selected':''}>Ocasión</option></select></div>${fi('kms','Km',r.kms,'number')}${fi('fecha','Fecha',r.fecha,'date')}${fi('taller','Taller / Casa',r.taller)}<div class="ff s2"><label>Observaciones</label><textarea id="f_obs">${esc(r.observaciones||'')}</textarea></div></div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveArreglo('${vid}','${rid}')">Guardar</button></div></div>`); }
-function saveArreglo(vid,id=null){ const v=vehicles.find(x=>x.id===vid); if(!v)return; v.arreglos=v.arreglos||[]; const rec={id:id||uid(),cambio:gf('cambio'),marca:gf('marca'),condicion:document.getElementById('f_condicion')?.value,kms:gf('kms'),fecha:gf('fecha'),taller:gf('taller'),observaciones:document.getElementById('f_obs')?.value}; if(id){const i=v.arreglos.findIndex(r=>r.id===id);v.arreglos[i]=rec;}else v.arreglos.push(rec); scheduleSave(vid); closeModal(); render(); }
+function arregloForm(r={}){return `<div class="modal"><div class="modal-title">${r.id?'Editar':'Nuevo'} arreglo</div><div class="fg">${fi('cambio','Cambio / Pieza',r.cambio)}${fi('marca','Marca',r.marca)}<div class="ff"><label>Nuevo / Ocasión</label><select id="f_condicion"><option ${r.condicion==='Nuevo'?'selected':''}>Nuevo</option><option ${r.condicion==='Ocasión'?'selected':''}>Ocasión</option></select></div>${fi('kms','Km',r.kms,'number')}${fi('fecha','Fecha',r.fecha,'date')}${fi('taller','Taller / Casa',r.taller)}${fi('precio','Precio (€)',r.precio,'number')}${fta('obs','Observaciones',r.observaciones)}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveArreglo('${curV().id}'${r.id?`,'${r.id}'`:''})">Guardar</button></div></div>`;}
+function addArreglo(vid){modal(arregloForm());}
+function editArreglo(vid,rid){modal(arregloForm((curV()?.arreglos||[]).find(x=>x.id===rid)||{}));}
+function saveArreglo(vid,id=null){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.arreglos=v.arreglos||[];const rec={id:id||uid(),cambio:gf('cambio'),marca:gf('marca'),condicion:document.getElementById('f_condicion')?.value,kms:gf('kms'),fecha:gf('fecha'),taller:gf('taller'),precio:gf('precio'),observaciones:document.getElementById('f_obs')?.value};if(id){const i=v.arreglos.findIndex(r=>r.id===id);v.arreglos[i]=rec;}else v.arreglos.push(rec);scheduleSave(vid);closeModal();render();}
 
-// ── ACEITE ────────────────────────────────────────────────────────────────
+// ACEITE
 function aceite(v){
-  const rows=(v.aceite||[]).map(r=>`<tr><td>${esc(r.marca)}</td><td>${esc(r.tipo)}</td><td>${esc(r.filtro)}</td><td>${r.kms?Number(r.kms).toLocaleString():'—'}</td><td>${esc(r.fecha)}</td><td><div class="acell"><button class="edt-btn" onclick="editAceite('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('aceite','${r.id}')">×</button></div></td></tr>`).join('');
-  return `<div class="sec-hdr"><div class="sec-title">Cambios de aceite</div><button class="add-btn" onclick="addAceite('${v.id}')">+ Añadir</button></div><div class="tbl-wrap"><table><thead><tr><th>Marca</th><th>Tipo</th><th>Filtro</th><th>Km</th><th>Fecha</th><th></th></tr></thead><tbody>${rows||noRows(6)}</tbody></table></div>`;
+  const rows=sortData(v.aceite||[],'aceite').map(r=>`<tr><td>${esc(r.marca)}</td><td>${esc(r.tipo)}</td><td>${esc(r.filtro)}</td><td>${r.kms?Number(r.kms).toLocaleString():'—'}</td><td>${esc(r.fecha)}</td><td>${eur(r.precio)}</td><td><div class="acell"><button class="edt-btn" onclick="editAceite('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('aceite','${r.id}')">×</button></div></td></tr>`).join('');
+  return `<div class="sec-hdr"><div class="sec-title">Cambios de aceite</div><button class="add-btn" onclick="addAceite('${v.id}')">+ Añadir</button></div>
+  <div class="tbl-wrap"><table><thead><tr>${th('aceite','marca','Marca')}${th('aceite','tipo','Tipo')}${th('aceite','filtro','Filtro')}${th('aceite','kms','Km')}${th('aceite','fecha','Fecha')}${th('aceite','precio','Precio')}<th></th></tr></thead><tbody>${rows||noRows(7)}</tbody></table></div>`;
 }
-function addAceite(vid){ modal(`<div class="modal"><div class="modal-title">Cambio de aceite</div><div class="fg">${fi('marca','Marca')}${fi('tipo','Tipo (ej. 5W30 Sintético)')}${fi('filtro','Filtro utilizado')}${fi('kms','Km','','number')}${fi('fecha','Fecha','','date')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveAceite('${vid}')">Guardar</button></div></div>`); }
-function editAceite(vid,rid){ const r=(curV()?.aceite||[]).find(x=>x.id===rid)||{}; modal(`<div class="modal"><div class="modal-title">Editar cambio de aceite</div><div class="fg">${fi('marca','Marca',r.marca)}${fi('tipo','Tipo',r.tipo)}${fi('filtro','Filtro',r.filtro)}${fi('kms','Km',r.kms,'number')}${fi('fecha','Fecha',r.fecha,'date')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveAceite('${vid}','${rid}')">Guardar</button></div></div>`); }
-function saveAceite(vid,id=null){ const v=vehicles.find(x=>x.id===vid); if(!v)return; v.aceite=v.aceite||[]; const rec={id:id||uid(),marca:gf('marca'),tipo:gf('tipo'),filtro:gf('filtro'),kms:gf('kms'),fecha:gf('fecha')}; if(id){const i=v.aceite.findIndex(r=>r.id===id);v.aceite[i]=rec;}else v.aceite.push(rec); scheduleSave(vid); closeModal(); render(); }
+function aceiteForm(r={}){return `<div class="modal"><div class="modal-title">${r.id?'Editar':'Nuevo'} cambio de aceite</div><div class="fg">${fi('marca','Marca',r.marca)}${fi('tipo','Tipo (ej. 5W30 Sintético)',r.tipo)}${fi('filtro','Filtro utilizado',r.filtro)}${fi('kms','Km',r.kms,'number')}${fi('fecha','Fecha',r.fecha,'date')}${fi('precio','Precio (€)',r.precio,'number')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveAceite('${curV().id}'${r.id?`,'${r.id}'`:''})">Guardar</button></div></div>`;}
+function addAceite(vid){modal(aceiteForm());}
+function editAceite(vid,rid){modal(aceiteForm((curV()?.aceite||[]).find(x=>x.id===rid)||{}));}
+function saveAceite(vid,id=null){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.aceite=v.aceite||[];const rec={id:id||uid(),marca:gf('marca'),tipo:gf('tipo'),filtro:gf('filtro'),kms:gf('kms'),fecha:gf('fecha'),precio:gf('precio')};if(id){const i=v.aceite.findIndex(r=>r.id===id);v.aceite[i]=rec;}else v.aceite.push(rec);scheduleSave(vid);closeModal();render();}
 
-// ── RUEDAS ────────────────────────────────────────────────────────────────
+// RUEDAS
 function ruedas(v){
-  const rows=(v.ruedas||[]).map(r=>`<tr><td><span class="badge ${r.posicion==='Delantera'?'b-info':'b-ok'}">${esc(r.posicion)}</span></td><td>${esc(r.marca)}</td><td>${esc(r.medida)}</td><td>${r.kms?Number(r.kms).toLocaleString():'—'}</td><td>${esc(r.fecha)}</td><td><div class="acell"><button class="edt-btn" onclick="editRueda('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('ruedas','${r.id}')">×</button></div></td></tr>`).join('');
-  return `<div class="sec-hdr"><div class="sec-title">Cambios de ruedas</div><button class="add-btn" onclick="addRueda('${v.id}')">+ Añadir</button></div><div class="tbl-wrap"><table><thead><tr><th>Posición</th><th>Marca</th><th>Medida</th><th>Km</th><th>Fecha</th><th></th></tr></thead><tbody>${rows||noRows(6)}</tbody></table></div>`;
+  const rows=sortData(v.ruedas||[],'ruedas').map(r=>`<tr><td><span class="badge ${r.posicion==='Delantera'?'b-info':'b-ok'}">${esc(r.posicion)}</span></td><td>${esc(r.marca)}</td><td>${esc(r.medida)}</td><td>${r.kms?Number(r.kms).toLocaleString():'—'}</td><td>${esc(r.fecha)}</td><td>${eur(r.precio)}</td><td style="max-width:120px;word-break:break-word">${esc(r.observaciones)}</td><td><div class="acell"><button class="edt-btn" onclick="editRueda('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('ruedas','${r.id}')">×</button></div></td></tr>`).join('');
+  return `<div class="sec-hdr"><div class="sec-title">Cambios de ruedas</div><button class="add-btn" onclick="addRueda('${v.id}')">+ Añadir</button></div>
+  <div class="tbl-wrap"><table><thead><tr>${th('ruedas','posicion','Posición')}${th('ruedas','marca','Marca')}${th('ruedas','medida','Medida')}${th('ruedas','kms','Km')}${th('ruedas','fecha','Fecha')}${th('ruedas','precio','Precio')}${th('ruedas','observaciones','Observaciones')}<th></th></tr></thead><tbody>${rows||noRows(8)}</tbody></table></div>`;
 }
-function addRueda(vid){ modal(`<div class="modal"><div class="modal-title">Cambio de ruedas</div><div class="fg"><div class="ff"><label>Posición</label><select id="f_pos"><option>Delantera</option><option>Trasera</option></select></div>${fi('marca','Marca')}${fi('medida','Medida (ej. 205/55R16)')}${fi('kms','Km','','number')}${fi('fecha','Fecha','','date')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveRueda('${vid}')">Guardar</button></div></div>`); }
-function editRueda(vid,rid){ const r=(curV()?.ruedas||[]).find(x=>x.id===rid)||{}; modal(`<div class="modal"><div class="modal-title">Editar rueda</div><div class="fg"><div class="ff"><label>Posición</label><select id="f_pos"><option ${r.posicion==='Delantera'?'selected':''}>Delantera</option><option ${r.posicion==='Trasera'?'selected':''}>Trasera</option></select></div>${fi('marca','Marca',r.marca)}${fi('medida','Medida',r.medida)}${fi('kms','Km',r.kms,'number')}${fi('fecha','Fecha',r.fecha,'date')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveRueda('${vid}','${rid}')">Guardar</button></div></div>`); }
-function saveRueda(vid,id=null){ const v=vehicles.find(x=>x.id===vid); if(!v)return; v.ruedas=v.ruedas||[]; const rec={id:id||uid(),posicion:document.getElementById('f_pos')?.value,marca:gf('marca'),medida:gf('medida'),kms:gf('kms'),fecha:gf('fecha')}; if(id){const i=v.ruedas.findIndex(r=>r.id===id);v.ruedas[i]=rec;}else v.ruedas.push(rec); scheduleSave(vid); closeModal(); render(); }
-
-// ── MANTENIMIENTOS ────────────────────────────────────────────────────────
+function ruedaForm(r={}){return `<div class="modal"><div class="modal-title">${r.id?'Editar':'Nuevo'} cambio de ruedas</div><div class="fg"><div class="ff"><label>Posición</label><select id="f_pos"><option ${r.posicion==='Delantera'?'selected':''}>Delantera</option><option ${r.posicion==='Trasera'?'selected':''}>Trasera</option></select></div>${fi('marca','Marca',r.marca)}${fi('medida','Medida (ej. 205/55R16)',r.medida)}${fi('kms','Km',r.kms,'number')}${fi('fecha','Fecha',r.fecha,'date')}${fi('precio','Precio (€)',r.precio,'number')}${fta('obs','Observaciones',r.observaciones)}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveRueda('${curV().id}'${r.id?`,'${r.id}'`:''})">Guardar</button></div></div>`;}
+function addRueda(vid){modal(ruedaForm());}
+function editRueda(vid,rid){modal(ruedaForm((curV()?.ruedas||[]).find(x=>x.id===rid)||{}));}
+function saveRueda(vid,id=null){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.ruedas=v.ruedas||[];const rec={id:id||uid(),posicion:document.getElementById('f_pos')?.value,marca:gf('marca'),medida:gf('medida'),kms:gf('kms'),fecha:gf('fecha'),precio:gf('precio'),observaciones:document.getElementById('f_obs')?.value};if(id){const i=v.ruedas.findIndex(r=>r.id===id);v.ruedas[i]=rec;}else v.ruedas.push(rec);scheduleSave(vid);closeModal();render();}
+// MANTENIMIENTOS
 function mantenimientos(v){
   const pr=(v.mantenimientos||[]).map(m=>`<tr><td>${esc(m.tipo)}</td><td>${Number(m.intervalKm).toLocaleString()} km</td><td>${esc(m.notas)}</td><td><button class="del-btn" onclick="delRec('mantenimientos','${m.id}')">×</button></td></tr>`).join('');
-  const hr=(v.histMantenimientos||[]).map(h=>`<tr><td>${esc(h.tipo)}</td><td>${h.kms?Number(h.kms).toLocaleString():'—'}</td><td>${esc(h.fecha)}</td><td>${esc(h.notas)}</td><td><button class="del-btn" onclick="delRec('histMantenimientos','${h.id}')">×</button></td></tr>`).join('');
-  return `<div style="margin-bottom:18px"><div class="sec-hdr"><div class="sec-title">Periodicidades del fabricante</div><button class="add-btn" onclick="addMantPlan('${v.id}')">+ Añadir</button></div><div class="tbl-wrap"><table><thead><tr><th>Mantenimiento</th><th>Intervalo</th><th>Notas</th><th></th></tr></thead><tbody>${pr||noRows(4)}</tbody></table></div></div>
-  <div><div class="sec-hdr"><div class="sec-title">Historial de mantenimientos realizados</div><button class="add-btn" onclick="addMantHist('${v.id}')">+ Registrar</button></div><div class="tbl-wrap"><table><thead><tr><th>Tipo</th><th>Km</th><th>Fecha</th><th>Notas</th><th></th></tr></thead><tbody>${hr||noRows(5)}</tbody></table></div></div>`;
+  const hr=sortData(v.histMantenimientos||[],'mantenimientos').map(h=>`<tr><td>${esc(h.tipo)}</td><td>${h.kms?Number(h.kms).toLocaleString():'—'}</td><td>${esc(h.fecha)}</td><td>${eur(h.precio)}</td><td>${esc(h.notas)}</td><td><button class="del-btn" onclick="delRec('histMantenimientos','${h.id}')">×</button></td></tr>`).join('');
+  return `<div style="margin-bottom:18px"><div class="sec-hdr"><div class="sec-title">Periodicidades del fabricante</div><button class="add-btn" onclick="addMantPlan('${v.id}')">+ Añadir</button></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Mantenimiento</th><th>Intervalo</th><th>Notas</th><th></th></tr></thead><tbody>${pr||noRows(4)}</tbody></table></div></div>
+  <div><div class="sec-hdr"><div class="sec-title">Historial de mantenimientos realizados</div><button class="add-btn" onclick="addMantHist('${v.id}')">+ Registrar</button></div>
+  <div class="tbl-wrap"><table><thead><tr>${th('mantenimientos','tipo','Tipo')}${th('mantenimientos','kms','Km')}${th('mantenimientos','fecha','Fecha')}${th('mantenimientos','precio','Precio')}${th('mantenimientos','notas','Notas')}<th></th></tr></thead><tbody>${hr||noRows(6)}</tbody></table></div></div>`;
 }
-function addMantPlan(vid){ modal(`<div class="modal"><div class="modal-title">Periodicidad del fabricante</div><div class="fg">${fi('tipo','Tipo (ej. Correa distribución)')}${fi('intervalKm','Cada cuántos km','','number')}<div class="ff s2"><label>Notas</label><textarea id="f_notas"></textarea></div></div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveMantPlan('${vid}')">Guardar</button></div></div>`); }
-function saveMantPlan(vid){ const v=vehicles.find(x=>x.id===vid); if(!v)return; v.mantenimientos=v.mantenimientos||[]; v.mantenimientos.push({id:uid(),tipo:gf('tipo'),intervalKm:gf('intervalKm'),notas:document.getElementById('f_notas')?.value}); scheduleSave(vid); closeModal(); render(); }
-function addMantHist(vid){ const v=vehicles.find(x=>x.id===vid); if(!v)return; const opts=(v.mantenimientos||[]).map(m=>`<option>${esc(m.tipo)}</option>`).join('')+'<option>Otro</option>'; modal(`<div class="modal"><div class="modal-title">Registrar mantenimiento</div><div class="fg"><div class="ff s2"><label>Tipo</label><select id="f_tipo" style="width:100%">${opts}</select></div>${fi('kms','Km','','number')}${fi('fecha','Fecha','','date')}<div class="ff s2"><label>Notas</label><textarea id="f_notas"></textarea></div></div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveMantHist('${vid}')">Guardar</button></div></div>`); }
-function saveMantHist(vid){ const v=vehicles.find(x=>x.id===vid); if(!v)return; v.histMantenimientos=v.histMantenimientos||[]; v.histMantenimientos.push({id:uid(),tipo:document.getElementById('f_tipo')?.value,kms:gf('kms'),fecha:gf('fecha'),notas:document.getElementById('f_notas')?.value}); scheduleSave(vid); closeModal(); render(); }
+function addMantPlan(vid){modal(`<div class="modal"><div class="modal-title">Periodicidad del fabricante</div><div class="fg">${fi('tipo','Tipo (ej. Correa distribución)')}${fi('intervalKm','Cada cuántos km','','number')}${fta('notas','Notas')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveMantPlan('${vid}')">Guardar</button></div></div>`);}
+function saveMantPlan(vid){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.mantenimientos=v.mantenimientos||[];v.mantenimientos.push({id:uid(),tipo:gf('tipo'),intervalKm:gf('intervalKm'),notas:document.getElementById('f_notas')?.value});scheduleSave(vid);closeModal();render();}
+function addMantHist(vid){const v=vehicles.find(x=>x.id===vid);if(!v)return;const opts=(v.mantenimientos||[]).map(m=>`<option>${esc(m.tipo)}</option>`).join('')+'<option>Otro</option>';modal(`<div class="modal"><div class="modal-title">Registrar mantenimiento</div><div class="fg"><div class="ff s2"><label>Tipo</label><select id="f_tipo" style="width:100%">${opts}</select></div>${fi('kms','Km','','number')}${fi('fecha','Fecha','','date')}${fi('precio','Precio (€)','','number')}${fta('notas','Notas')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveMantHist('${vid}')">Guardar</button></div></div>`);}
+function saveMantHist(vid){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.histMantenimientos=v.histMantenimientos||[];v.histMantenimientos.push({id:uid(),tipo:document.getElementById('f_tipo')?.value,kms:gf('kms'),fecha:gf('fecha'),precio:gf('precio'),notas:document.getElementById('f_notas')?.value});scheduleSave(vid);closeModal();render();}
 
-// ── REFERENCIAS ───────────────────────────────────────────────────────────
+// REFERENCIAS
 const REF_CATS=['Filtro de aceite','Filtro de habitáculo','Filtro de combustible','Filtro de aire','Pastillas freno','Discos freno','Bujías','Correa distribución','Correa accesorios','Amortiguadores','Batería','Otro'];
-function referencias(v){
-  const cards=(v.referencias||[]).map(r=>`<div class="ref-card"><div class="ref-cat">${esc(r.categoria||'Otro')}</div><div class="ref-name">${esc(r.nombre)}</div><div class="ref-ref">${esc(r.referencia)}</div>${r.marca?`<div style="font-size:11px;color:#888;margin-top:2px">${esc(r.marca)}</div>`:''} ${r.notas?`<div style="font-size:11px;color:#888;margin-top:3px">${esc(r.notas)}</div>`:''}<div style="margin-top:8px;display:flex;gap:4px"><button class="edt-btn" onclick="editRef('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('referencias','${r.id}')">×</button></div></div>`).join('');
-  return `<div class="sec-hdr"><div class="sec-title">Referencias de piezas</div><button class="add-btn" onclick="addRef('${v.id}')">+ Añadir</button></div><div class="refs-grid">${cards||'<div style="color:#aaa;font-size:13px">Sin referencias</div>'}</div>`;
-}
-function refForm(v,r={}){ const opts=REF_CATS.map(c=>`<option ${c===(r.categoria||'')?'selected':''}>${c}</option>`).join(''); return `<div class="modal"><div class="modal-title">${r.id?'Editar':'Nueva'} referencia</div><div class="fg"><div class="ff s2"><label>Categoría</label><select id="f_cat" style="width:100%">${opts}</select></div>${fi('nombre','Nombre de la pieza',r.nombre)}${fi('referencia','Referencia / OEM',r.referencia)}${fi('marca','Marca',r.marca)}<div class="ff s2"><label>Notas</label><textarea id="f_notas">${esc(r.notas||'')}</textarea></div></div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveRef('${v.id}'${r.id?`,'${r.id}'`:''})">Guardar</button></div></div>`; }
-function addRef(vid){ modal(refForm(curV())); }
-function editRef(vid,rid){ modal(refForm(curV(),(curV()?.referencias||[]).find(x=>x.id===rid)||{})); }
-function saveRef(vid,id=null){ const v=vehicles.find(x=>x.id===vid); if(!v)return; v.referencias=v.referencias||[]; const rec={id:id||uid(),categoria:document.getElementById('f_cat')?.value,nombre:gf('nombre'),referencia:gf('referencia'),marca:gf('marca'),notas:document.getElementById('f_notas')?.value}; if(id){const i=v.referencias.findIndex(r=>r.id===id);v.referencias[i]=rec;}else v.referencias.push(rec); scheduleSave(vid); closeModal(); render(); }
+function referencias(v){const cards=(v.referencias||[]).map(r=>`<div class="ref-card"><div class="ref-cat">${esc(r.categoria||'Otro')}</div><div class="ref-name">${esc(r.nombre)}</div><div class="ref-ref">${esc(r.referencia)}</div>${r.marca?`<div style="font-size:11px;color:#888;margin-top:2px">${esc(r.marca)}</div>`:''} ${r.notas?`<div style="font-size:11px;color:#888;margin-top:3px">${esc(r.notas)}</div>`:''}<div style="margin-top:8px;display:flex;gap:4px"><button class="edt-btn" onclick="editRef('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('referencias','${r.id}')">×</button></div></div>`).join('');return `<div class="sec-hdr"><div class="sec-title">Referencias de piezas</div><button class="add-btn" onclick="addRef('${v.id}')">+ Añadir</button></div><div class="refs-grid">${cards||'<div style="color:#aaa;font-size:13px">Sin referencias</div>'}</div>`;}
+function refForm(v,r={}){const opts=REF_CATS.map(c=>`<option ${c===(r.categoria||'')?'selected':''}>${c}</option>`).join('');return `<div class="modal"><div class="modal-title">${r.id?'Editar':'Nueva'} referencia</div><div class="fg"><div class="ff s2"><label>Categoría</label><select id="f_cat" style="width:100%">${opts}</select></div>${fi('nombre','Nombre de la pieza',r.nombre)}${fi('referencia','Referencia / OEM',r.referencia)}${fi('marca','Marca',r.marca)}${fta('notas','Notas',r.notas)}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveRef('${v.id}'${r.id?`,'${r.id}'`:''})">Guardar</button></div></div>`;}
+function addRef(vid){modal(refForm(curV()));}
+function editRef(vid,rid){modal(refForm(curV(),(curV()?.referencias||[]).find(x=>x.id===rid)||{}));}
+function saveRef(vid,id=null){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.referencias=v.referencias||[];const rec={id:id||uid(),categoria:document.getElementById('f_cat')?.value,nombre:gf('nombre'),referencia:gf('referencia'),marca:gf('marca'),notas:document.getElementById('f_notas')?.value};if(id){const i=v.referencias.findIndex(r=>r.id===id);v.referencias[i]=rec;}else v.referencias.push(rec);scheduleSave(vid);closeModal();render();}
 
-// ── FOTOS ─────────────────────────────────────────────────────────────────
-function fotos(v){
-  const cards=(v.fotos||[]).map((p,i)=>`<div class="photo-card"><img src="${p.url||p.data}" alt="${esc(p.label||'')}"><button class="photo-del" onclick="delFoto('${v.id}',${i})">×</button><div class="photo-label">${esc(p.label||'Sin título')}</div></div>`).join('');
-  return `<div class="sec-hdr"><div class="sec-title">Fotos del vehículo</div></div><div class="photo-grid">${cards}</div>
-  <div class="upload-zone" onclick="document.getElementById('photo-input').click()"><input type="file" id="photo-input" accept="image/*" multiple style="display:none" onchange="handlePhotos('${v.id}',this)">📷 Haz clic para añadir fotos</div>`;
+// COMBUSTIBLE
+function combustible(v){
+  const rows=sortData(v.combustible||[],'combustible').map(r=>`<tr><td>${esc(r.tipo)}</td><td>${r.litros?Number(r.litros).toFixed(2):'—'}</td><td>${r.preciolitro?Number(r.preciolitro).toFixed(3)+' €':'—'}</td><td>${eur(r.importe)}</td><td>${r.kms?Number(r.kms).toLocaleString():'—'}</td><td>${esc(r.fecha)}</td><td>${esc(r.gasolinera)}</td><td><div class="acell"><button class="edt-btn" onclick="editCombustible('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('combustible','${r.id}')">×</button></div></td></tr>`).join('');
+  const totalL=(v.combustible||[]).reduce((s,r)=>s+parseFloat(r.litros||0),0);
+  const totalE=(v.combustible||[]).reduce((s,r)=>s+parseFloat(r.importe||0),0);
+  return `<div class="sec-hdr"><div class="sec-title">Repostajes</div><button class="add-btn" onclick="addCombustible('${v.id}')">+ Añadir</button></div>
+  ${(v.combustible||[]).length?`<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap"><div class="bal-card" style="flex:1;min-width:120px"><div class="bal-label">Total litros</div><div class="bal-amount" style="font-size:17px">${totalL.toFixed(1)} L</div></div><div class="bal-card" style="flex:1;min-width:120px"><div class="bal-label">Total gastado</div><div class="bal-amount" style="font-size:17px">${totalE.toFixed(2)} €</div></div></div>`:''}
+  <div class="tbl-wrap"><table><thead><tr>${th('combustible','tipo','Tipo')}${th('combustible','litros','Litros')}${th('combustible','preciolitro','€/L')}${th('combustible','importe','Importe')}${th('combustible','kms','Km')}${th('combustible','fecha','Fecha')}${th('combustible','gasolinera','Gasolinera')}<th></th></tr></thead><tbody>${rows||noRows(8)}</tbody></table></div>`;
 }
-async function handlePhotos(vid,input){
-  const v=vehicles.find(x=>x.id===vid); if(!v)return; v.fotos=v.fotos||[]; notif('Subiendo fotos...');
-  for(const f of Array.from(input.files)){
-    const b64=await fileToBase64(f), path=`${vid}/fotos/${uid()}_${f.name}`;
-    const url=await sbUpload(path,b64,f.type);
-    v.fotos.push({id:uid(),label:f.name.replace(/\.[^.]+$/,''),url:url||b64,path:url?path:null});
-  }
-  await doSave(vid); notif('Fotos guardadas'); render();
-}
-async function delFoto(vid,idx){
-  const v=vehicles.find(x=>x.id===vid); if(!v)return;
-  const f=v.fotos[idx]; if(f?.path) await sbDelFile(f.path);
-  v.fotos.splice(idx,1); await doSave(vid); render();
-}
+function combForm(r={}){return `<div class="modal"><div class="modal-title">${r.id?'Editar':'Nuevo'} repostaje</div><div class="fg"><div class="ff"><label>Tipo de combustible</label><select id="f_tipo"><option ${r.tipo==='Gasolina 95'?'selected':''}>Gasolina 95</option><option ${r.tipo==='Gasolina 98'?'selected':''}>Gasolina 98</option><option ${r.tipo==='Diésel'?'selected':''}>Diésel</option><option ${r.tipo==='Diésel Premium'?'selected':''}>Diésel Premium</option><option ${r.tipo==='GLP'?'selected':''}>GLP</option><option ${r.tipo==='Eléctrico'?'selected':''}>Eléctrico (kWh)</option></select></div>${fi('litros','Litros / kWh',r.litros,'number')}${fi('preciolitro','Precio/L o kWh (€)',r.preciolitro,'number')}${fi('importe','Importe total (€)',r.importe,'number')}${fi('kms','Km',r.kms,'number')}${fi('fecha','Fecha',r.fecha,'date')}${fi('gasolinera','Gasolinera / Punto recarga',r.gasolinera)}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveCombustible('${curV().id}'${r.id?`,'${r.id}'`:''})">Guardar</button></div></div>`;}
+function addCombustible(vid){modal(combForm());}
+function editCombustible(vid,rid){modal(combForm((curV()?.combustible||[]).find(x=>x.id===rid)||{}));}
+function saveCombustible(vid,id=null){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.combustible=v.combustible||[];const rec={id:id||uid(),tipo:document.getElementById('f_tipo')?.value,litros:gf('litros'),preciolitro:gf('preciolitro'),importe:gf('importe'),kms:gf('kms'),fecha:gf('fecha'),gasolinera:gf('gasolinera')};if(id){const i=v.combustible.findIndex(r=>r.id===id);v.combustible[i]=rec;}else v.combustible.push(rec);scheduleSave(vid);closeModal();render();}
 
-// ── DOCUMENTOS ────────────────────────────────────────────────────────────
+// TAREAS PENDIENTES
+function tareas(v){
+  const sorted=sortData(v.tareas||[],'tareas');
+  const pend=sorted.filter(t=>!t.done),done=sorted.filter(t=>t.done);
+  const row=(t)=>`<tr class="${t.done?'task-done':''}"><td><span class="badge ${t.tipo==='Mecánica'?'b-mec':'b-est'}">${esc(t.tipo)}</span></td><td>${esc(t.fecha)}</td><td style="max-width:300px;word-break:break-word">${esc(t.observaciones)}</td><td><div class="acell">${!t.done?`<button class="done-btn" onclick="doneTask('${v.id}','${t.id}')">✓ Hecho</button>`:'<span style="font-size:11px;color:#aaa">Completada</span>'}<button class="del-btn" onclick="delRec('tareas','${t.id}')">×</button></div></td></tr>`;
+  return `<div class="sec-hdr"><div class="sec-title">Tareas pendientes</div><button class="add-btn" onclick="addTarea('${v.id}')">+ Añadir tarea</button></div>
+  <div class="tbl-wrap"><table><thead><tr>${th('tareas','tipo','Tipo')}${th('tareas','fecha','Fecha registro')}${th('tareas','observaciones','Descripción / Observaciones')}<th></th></tr></thead>
+  <tbody>${pend.length?pend.map(row).join(''):noRows(4)}${done.length?`<tr><td colspan="4" style="padding:8px 10px;font-size:11px;color:#aaa;font-weight:600;background:#fafaf8">COMPLETADAS</td></tr>${done.map(row).join('')}`:''}</tbody></table></div>`;
+}
+function addTarea(vid){modal(`<div class="modal"><div class="modal-title">Nueva tarea pendiente</div><div class="fg"><div class="ff"><label>Tipo de acción</label><select id="f_tipo"><option>Mecánica</option><option>Estética</option></select></div>${fi('fecha','Fecha de registro',new Date().toISOString().slice(0,10),'date')}${fta('obs','Descripción / Observaciones')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveTarea('${vid}')">Guardar</button></div></div>`);}
+function saveTarea(vid){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.tareas=v.tareas||[];v.tareas.push({id:uid(),tipo:document.getElementById('f_tipo')?.value,fecha:gf('fecha'),observaciones:document.getElementById('f_obs')?.value,done:false});scheduleSave(vid);closeModal();render();}
+function doneTask(vid,tid){const v=vehicles.find(x=>x.id===vid);if(!v)return;const t=(v.tareas||[]).find(x=>x.id===tid);if(t){t.done=true;scheduleSave(vid);render();}}
+// BALANCE
+function balance(v){
+  const allYears=[...(v.arreglos||[]),(v.aceite||[]),(v.ruedas||[]),(v.histMantenimientos||[]),(v.combustible||[])].flat().map(r=>r.fecha?.slice(0,4)).filter(Boolean);
+  const years=[...new Set(allYears)].sort((a,b)=>b-a);
+  const sel=v._balYear||(years[0]||String(new Date().getFullYear()));
+  const inY=(arr)=>arr.filter(r=>(r.fecha||'').startsWith(sel));
+  const sum=(arr,c='precio')=>arr.reduce((s,r)=>s+parseFloat(r[c]||0),0);
+  const tA=sum(inY(v.arreglos||[])),tAc=sum(inY(v.aceite||[])),tR=sum(inY(v.ruedas||[])),tM=sum(inY(v.histMantenimientos||[])),tC=sum(inY(v.combustible||[]),'importe');
+  const total=tA+tAc+tR+tM+tC;
+  const yOpts=years.map(y=>`<option ${y===sel?'selected':''}>${y}</option>`).join('');
+  const det=(titulo,arr,c='precio')=>{const items=inY(arr).filter(r=>parseFloat(r[c]||0)>0);if(!items.length)return'';return `<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:#666;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #eee">${titulo}</div><div class="tbl-wrap"><table><thead><tr><th>Descripción</th><th>Fecha</th><th>Importe</th></tr></thead><tbody>${items.map(r=>`<tr><td>${esc(r.cambio||r.tipo||r.posicion||r.marca||'—')}</td><td>${esc(r.fecha)}</td><td><strong>${eur(r[c])}</strong></td></tr>`).join('')}<tr style="background:#f8f8f6"><td colspan="2" style="font-weight:600">Total ${titulo}</td><td><strong>${sum(items,c).toFixed(2)} €</strong></td></tr></tbody></table></div></div>`;};
+  return `<div class="year-sel"><div style="font-size:14px;font-weight:600">Balance de gastos</div><select onchange="setBalYear('${v.id}',this.value)">${yOpts}${!years.length?`<option>${new Date().getFullYear()}</option>`:''}</select></div>
+  <div class="balance-grid">
+    <div class="bal-card"><div class="bal-label">🔧 Arreglos</div><div class="bal-amount">${tA.toFixed(2)} €</div><div class="bal-count">${inY(v.arreglos||[]).length} registros</div></div>
+    <div class="bal-card"><div class="bal-label">🛢 Aceite</div><div class="bal-amount">${tAc.toFixed(2)} €</div><div class="bal-count">${inY(v.aceite||[]).length} cambios</div></div>
+    <div class="bal-card"><div class="bal-label">🔄 Ruedas</div><div class="bal-amount">${tR.toFixed(2)} €</div><div class="bal-count">${inY(v.ruedas||[]).length} registros</div></div>
+    <div class="bal-card"><div class="bal-label">⚙️ Mantenimiento</div><div class="bal-amount">${tM.toFixed(2)} €</div><div class="bal-count">${inY(v.histMantenimientos||[]).length} registros</div></div>
+    <div class="bal-card"><div class="bal-label">⛽ Combustible</div><div class="bal-amount">${tC.toFixed(2)} €</div><div class="bal-count">${inY(v.combustible||[]).length} repostajes</div></div>
+    <div class="bal-card bal-total"><div class="bal-label">TOTAL ${sel}</div><div class="bal-amount">${total.toFixed(2)} €</div><div class="bal-count">todos los gastos</div></div>
+  </div>
+  ${det('Arreglos',v.arreglos||[])}${det('Aceite',v.aceite||[])}${det('Ruedas',v.ruedas||[])}${det('Mantenimientos',v.histMantenimientos||[])}${det('Combustible',v.combustible||[],'importe')}`;
+}
+function setBalYear(vid,y){const v=vehicles.find(x=>x.id===vid);if(!v)return;v._balYear=y;render();}
+
+// FOTOS
+function fotos(v){const cards=(v.fotos||[]).map((p,i)=>`<div class="photo-card"><img src="${p.url||p.data}" alt="${esc(p.label||'')}"><button class="photo-del" onclick="delFoto('${v.id}',${i})">×</button><div class="photo-label">${esc(p.label||'Sin título')}</div></div>`).join('');return `<div class="sec-hdr"><div class="sec-title">Fotos del vehículo</div></div><div class="photo-grid">${cards}</div><div class="upload-zone" onclick="document.getElementById('photo-input').click()"><input type="file" id="photo-input" accept="image/*" multiple style="display:none" onchange="handlePhotos('${v.id}',this)">📷 Haz clic para añadir fotos</div>`;}
+async function handlePhotos(vid,input){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.fotos=v.fotos||[];notif('Subiendo fotos...');for(const f of Array.from(input.files)){const b64=await fileToBase64(f),path=`${vid}/fotos/${uid()}_${f.name}`,url=await sbUpload(path,b64,f.type,session.access_token);v.fotos.push({id:uid(),label:f.name.replace(/\.[^.]+$/,''),url:url||b64,path:url?path:null});}await doSave(vid);notif('Fotos guardadas');render();}
+async function delFoto(vid,idx){const v=vehicles.find(x=>x.id===vid);if(!v)return;const f=v.fotos[idx];if(f?.path)await sbDelFile(f.path,session.access_token);v.fotos.splice(idx,1);await doSave(vid);render();}
+
+// DOCUMENTOS
 const DOC_CATS=['Manual de taller','Manual de usuario','Factura','Garantía','Seguro','ITV','Explicación técnica','Otro'];
 const DOC_ICONS={'Manual de taller':'📘','Manual de usuario':'📗','Factura':'🧾','Garantía':'📋','Seguro':'🛡','ITV':'🔍','Explicación técnica':'📄'};
-function documentos(v){
-  const docs=v.documentos||[];
-  let html=`<div class="sec-hdr"><div class="sec-title">Carpeta de documentos</div><button class="add-btn" onclick="addDoc('${v.id}')">+ Añadir</button></div>`;
-  if(!docs.length) return html+'<div style="color:#aaa;font-size:13px">Sin documentos</div>';
-  DOC_CATS.forEach(cat=>{ const items=docs.filter(d=>d.categoria===cat); if(!items.length)return;
-    html+=`<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:#666;margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid #eee">${esc(cat)}</div><div class="docs-grid">${items.map(d=>`<div class="doc-card"><div class="doc-icon">${DOC_ICONS[d.categoria]||'📁'}</div><div class="doc-info"><div class="doc-name" title="${esc(d.nombre)}">${esc(d.nombre)}</div><div class="doc-meta">${d.fecha||''} ${d.size?'· '+d.size:''}${d.notas?'<br>'+esc(d.notas):''}</div><div class="doc-actions">${d.url?`<a href="${d.url}" target="_blank" class="edt-btn" style="text-decoration:none">⬇ Abrir</a>`:''}<button class="del-btn" onclick="delDoc('${v.id}','${d.id}')">×</button></div></div></div>`).join('')}</div></div>`;
-  });
-  return html;
-}
-function addDoc(vid){ const opts=DOC_CATS.map(c=>`<option>${c}</option>`).join(''); modal(`<div class="modal"><div class="modal-title">Añadir documento</div><div class="fg"><div class="ff s2"><label>Categoría</label><select id="f_doccat" style="width:100%">${opts}</select></div>${fi('nombre','Nombre del documento')}${fi('fecha','Fecha','','date')}<div class="ff s2"><label>Notas</label><textarea id="f_notas"></textarea></div><div class="ff s2"><label>Archivo</label><input type="file" id="f_docfile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.txt" style="padding:4px"></div></div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveDoc('${vid}')">Guardar</button></div></div>`); }
-async function saveDoc(vid){ const v=vehicles.find(x=>x.id===vid); if(!v)return; v.documentos=v.documentos||[]; const file=document.getElementById('f_docfile')?.files[0]; const rec={id:uid(),categoria:document.getElementById('f_doccat')?.value,nombre:gf('nombre')||file?.name||'Sin nombre',fecha:gf('fecha'),notas:document.getElementById('f_notas')?.value}; closeModal();
-  if(file){ notif('Subiendo archivo...'); rec.size=file.size>1048576?`${(file.size/1048576).toFixed(1)} MB`:`${Math.round(file.size/1024)} KB`; const b64=await fileToBase64(file), path=`${vid}/docs/${uid()}_${file.name}`, url=await sbUpload(path,b64,file.type); rec.url=url||null; rec.path=url?path:null; notif('Archivo guardado'); }
-  v.documentos.push(rec); await doSave(vid); render();
-}
-async function delDoc(vid,docId){ const v=vehicles.find(x=>x.id===vid); if(!v)return; const d=(v.documentos||[]).find(x=>x.id===docId); if(d?.path) await sbDelFile(d.path); v.documentos=(v.documentos||[]).filter(x=>x.id!==docId); await doSave(vid); render(); }
+function documentos(v){const docs=v.documentos||[];let html=`<div class="sec-hdr"><div class="sec-title">Carpeta de documentos</div><button class="add-btn" onclick="addDoc('${v.id}')">+ Añadir</button></div>`;if(!docs.length)return html+'<div style="color:#aaa;font-size:13px">Sin documentos</div>';DOC_CATS.forEach(cat=>{const items=docs.filter(d=>d.categoria===cat);if(!items.length)return;html+=`<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:#666;margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid #eee">${esc(cat)}</div><div class="docs-grid">${items.map(d=>`<div class="doc-card"><div class="doc-icon">${DOC_ICONS[d.categoria]||'📁'}</div><div class="doc-info"><div class="doc-name" title="${esc(d.nombre)}">${esc(d.nombre)}</div><div class="doc-meta">${d.fecha||''} ${d.size?'· '+d.size:''}${d.notas?'<br>'+esc(d.notas):''}</div><div class="doc-actions">${d.url?`<a href="${d.url}" target="_blank" class="edt-btn" style="text-decoration:none">⬇ Abrir</a>`:''}<button class="del-btn" onclick="delDoc('${v.id}','${d.id}')">×</button></div></div></div>`).join('')}</div></div>`;});return html;}
+function addDoc(vid){const opts=DOC_CATS.map(c=>`<option>${c}</option>`).join('');modal(`<div class="modal"><div class="modal-title">Añadir documento</div><div class="fg"><div class="ff s2"><label>Categoría</label><select id="f_doccat" style="width:100%">${opts}</select></div>${fi('nombre','Nombre del documento')}${fi('fecha','Fecha','','date')}${fta('notas','Notas')}<div class="ff s2"><label>Archivo</label><input type="file" id="f_docfile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.txt" style="padding:4px"></div></div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveDoc('${vid}')">Guardar</button></div></div>`);}
+async function saveDoc(vid){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.documentos=v.documentos||[];const file=document.getElementById('f_docfile')?.files[0];const rec={id:uid(),categoria:document.getElementById('f_doccat')?.value,nombre:gf('nombre')||file?.name||'Sin nombre',fecha:gf('fecha'),notas:document.getElementById('f_notas')?.value};closeModal();if(file){notif('Subiendo archivo...');rec.size=file.size>1048576?`${(file.size/1048576).toFixed(1)} MB`:`${Math.round(file.size/1024)} KB`;const b64=await fileToBase64(file),path=`${vid}/docs/${uid()}_${file.name}`,url=await sbUpload(path,b64,file.type,session.access_token);rec.url=url||null;rec.path=url?path:null;notif('Archivo guardado');}v.documentos.push(rec);await doSave(vid);render();}
+async function delDoc(vid,docId){const v=vehicles.find(x=>x.id===vid);if(!v)return;const d=(v.documentos||[]).find(x=>x.id===docId);if(d?.path)await sbDelFile(d.path,session.access_token);v.documentos=(v.documentos||[]).filter(x=>x.id!==docId);await doSave(vid);render();}
 
-// ── VEHÍCULO CRUD ──────────────────────────────────────────────────────────
-function vForm(v={}){ return `<div class="modal"><div class="modal-title">${v.id?'Editar':'Nuevo'} vehículo</div><div class="fg">${fi('marca','Marca',v.marca)}${fi('modelo','Modelo',v.modelo)}${fi('matricula','Matrícula',v.matricula)}${fi('variante','Variante',v.variante)}${fi('bastidor','Nº Bastidor (VIN)',v.bastidor)}${fi('codMotor','Código de motor',v.codMotor)}${fi('fechaCompra','Fecha de compra',v.fechaCompra,'date')}${fi('precio','Precio (€)',v.precio,'number')}${fi('itv','Próxima ITV',v.itv,'date')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="${v.id?`saveEditV('${v.id}')`:'saveNewV()'}">Guardar</button></div></div>`; }
-function openAddV(){ modal(vForm()); }
-function openEditV(id){ modal(vForm(vehicles.find(x=>x.id===id)||{})); }
-async function saveNewV(){ const v={id:uid(),marca:gf('marca'),modelo:gf('modelo'),matricula:gf('matricula'),variante:gf('variante'),bastidor:gf('bastidor'),codMotor:gf('codMotor'),fechaCompra:gf('fechaCompra'),precio:gf('precio'),itv:gf('itv'),arreglos:[],aceite:[],ruedas:[],mantenimientos:[],histMantenimientos:[],referencias:[],fotos:[],documentos:[]}; vehicles.push(v); currentId=v.id; currentTab='resumen'; closeModal(); render(); await doSave(v.id); notif('Vehículo guardado'); }
-async function saveEditV(id){ const v=vehicles.find(x=>x.id===id); if(!v)return; Object.assign(v,{marca:gf('marca'),modelo:gf('modelo'),matricula:gf('matricula'),variante:gf('variante'),bastidor:gf('bastidor'),codMotor:gf('codMotor'),fechaCompra:gf('fechaCompra'),precio:gf('precio'),itv:gf('itv')}); closeModal(); render(); await doSave(id); notif('Cambios guardados'); }
-async function delV(id){ if(!confirm('¿Eliminar este vehículo y todos sus datos?'))return; const v=vehicles.find(x=>x.id===id); if(v){ for(const f of(v.fotos||[])) if(f.path) await sbDelFile(f.path); for(const d of(v.documentos||[])) if(d.path) await sbDelFile(d.path); } vehicles=vehicles.filter(x=>x.id!==id); currentId=vehicles[0]?.id||null; await sbDel(id); render(); notif('Vehículo eliminado'); }
+// VEHICULO CRUD
+function vForm(v={}){return `<div class="modal"><div class="modal-title">${v.id?'Editar':'Nuevo'} vehículo</div><div class="fg">${fi('marca','Marca',v.marca)}${fi('modelo','Modelo',v.modelo)}${fi('matricula','Matrícula',v.matricula)}${fi('variante','Variante',v.variante)}${fi('bastidor','Nº Bastidor (VIN)',v.bastidor)}${fi('codMotor','Código de motor',v.codMotor)}${fi('codPintura','Código de pintura',v.codPintura)}${fi('fechaCompra','Fecha de compra',v.fechaCompra,'date')}${fi('kmCompra','Km en compra',v.kmCompra,'number')}${fi('precio','Precio compra (€)',v.precio,'number')}${fi('itv','Próxima ITV',v.itv,'date')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="${v.id?`saveEditV('${v.id}')`:'saveNewV()'}">Guardar</button></div></div>`;}
+function openAddV(){modal(vForm());}
+function openEditV(id){modal(vForm(vehicles.find(x=>x.id===id)||{}));}
+async function saveNewV(){const v={id:uid(),marca:gf('marca'),modelo:gf('modelo'),matricula:gf('matricula'),variante:gf('variante'),bastidor:gf('bastidor'),codMotor:gf('codMotor'),codPintura:gf('codPintura'),fechaCompra:gf('fechaCompra'),kmCompra:gf('kmCompra'),precio:gf('precio'),itv:gf('itv'),arreglos:[],aceite:[],ruedas:[],mantenimientos:[],histMantenimientos:[],referencias:[],combustible:[],tareas:[],fotos:[],documentos:[]};vehicles.push(v);currentId=v.id;currentTab='resumen';closeModal();render();await doSave(v.id);notif('Vehículo guardado');}
+async function saveEditV(id){const v=vehicles.find(x=>x.id===id);if(!v)return;Object.assign(v,{marca:gf('marca'),modelo:gf('modelo'),matricula:gf('matricula'),variante:gf('variante'),bastidor:gf('bastidor'),codMotor:gf('codMotor'),codPintura:gf('codPintura'),fechaCompra:gf('fechaCompra'),kmCompra:gf('kmCompra'),precio:gf('precio'),itv:gf('itv')});closeModal();render();await doSave(id);notif('Cambios guardados');}
+async function delV(id){if(!confirm('¿Eliminar este vehículo y todos sus datos?'))return;const v=vehicles.find(x=>x.id===id);if(v){for(const f of(v.fotos||[]))if(f.path)await sbDelFile(f.path,session.access_token);for(const d of(v.documentos||[]))if(d.path)await sbDelFile(d.path,session.access_token);}vehicles=vehicles.filter(x=>x.id!==id);currentId=vehicles[0]?.id||null;await sbDel(id,session.access_token);render();notif('Vehículo eliminado');}
 
-// ── EXPORTAR EXCEL ────────────────────────────────────────────────────────
-function exportExcel(vid){ const v=vehicles.find(x=>x.id===vid); if(!v)return; const wb=XLSX.utils.book_new(); const sh=(n,d)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),n); sh('Ficha',[['Campo','Valor'],['Marca',v.marca],['Modelo',v.modelo],['Matrícula',v.matricula],['Bastidor',v.bastidor],['Cód. motor',v.codMotor],['Variante',v.variante],['Fecha compra',v.fechaCompra],['Precio',v.precio],['Próxima ITV',v.itv]]); if((v.arreglos||[]).length) sh('Arreglos',[['Cambio/Pieza','Marca','Nuevo/Ocasión','Km','Fecha','Taller/Casa','Observaciones'],...v.arreglos.map(r=>[r.cambio,r.marca,r.condicion,r.kms,r.fecha,r.taller,r.observaciones])]); if((v.aceite||[]).length) sh('Aceite',[['Marca','Tipo','Filtro','Km','Fecha'],...v.aceite.map(r=>[r.marca,r.tipo,r.filtro,r.kms,r.fecha])]); if((v.ruedas||[]).length) sh('Ruedas',[['Posición','Marca','Medida','Km','Fecha'],...v.ruedas.map(r=>[r.posicion,r.marca,r.medida,r.kms,r.fecha])]); if((v.histMantenimientos||[]).length) sh('Mantenimientos',[['Tipo','Km','Fecha','Notas'],...v.histMantenimientos.map(r=>[r.tipo,r.kms,r.fecha,r.notas])]); if((v.referencias||[]).length) sh('Referencias',[['Categoría','Nombre','Referencia','Marca','Notas'],...v.referencias.map(r=>[r.categoria,r.nombre,r.referencia,r.marca,r.notas])]); XLSX.writeFile(wb,`${v.marca||'vehiculo'}_${v.matricula||'historial'}.xlsx`); }
+// EXCEL
+function exportExcel(vid){const v=vehicles.find(x=>x.id===vid);if(!v)return;const wb=XLSX.utils.book_new();const sh=(n,d)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),n);sh('Ficha',[['Campo','Valor'],['Marca',v.marca],['Modelo',v.modelo],['Matrícula',v.matricula],['Bastidor',v.bastidor],['Cód. motor',v.codMotor],['Cód. pintura',v.codPintura],['Variante',v.variante],['Fecha compra',v.fechaCompra],['Km compra',v.kmCompra],['Precio',v.precio],['Próxima ITV',v.itv]]);if((v.arreglos||[]).length)sh('Arreglos',[['Cambio/Pieza','Marca','Nuevo/Ocasión','Km','Fecha','Taller/Casa','Precio','Observaciones'],...v.arreglos.map(r=>[r.cambio,r.marca,r.condicion,r.kms,r.fecha,r.taller,r.precio,r.observaciones])]);if((v.aceite||[]).length)sh('Aceite',[['Marca','Tipo','Filtro','Km','Fecha','Precio'],...v.aceite.map(r=>[r.marca,r.tipo,r.filtro,r.kms,r.fecha,r.precio])]);if((v.ruedas||[]).length)sh('Ruedas',[['Posición','Marca','Medida','Km','Fecha','Precio','Observaciones'],...v.ruedas.map(r=>[r.posicion,r.marca,r.medida,r.kms,r.fecha,r.precio,r.observaciones])]);if((v.histMantenimientos||[]).length)sh('Mantenimientos',[['Tipo','Km','Fecha','Precio','Notas'],...v.histMantenimientos.map(r=>[r.tipo,r.kms,r.fecha,r.precio,r.notas])]);if((v.combustible||[]).length)sh('Combustible',[['Tipo','Litros','€/L','Importe','Km','Fecha','Gasolinera'],...v.combustible.map(r=>[r.tipo,r.litros,r.preciolitro,r.importe,r.kms,r.fecha,r.gasolinera])]);if((v.tareas||[]).length)sh('Tareas',[['Tipo','Fecha','Descripción','Estado'],...v.tareas.map(r=>[r.tipo,r.fecha,r.observaciones,r.done?'Completada':'Pendiente'])]);if((v.referencias||[]).length)sh('Referencias',[['Categoría','Nombre','Referencia','Marca','Notas'],...v.referencias.map(r=>[r.categoria,r.nombre,r.referencia,r.marca,r.notas])]);XLSX.writeFile(wb,`${v.marca||'vehiculo'}_${v.matricula||'historial'}.xlsx`);}
 
-// ── EXPORTAR PDF ──────────────────────────────────────────────────────────
-function exportPDF(vid){ const v=vehicles.find(x=>x.id===vid); if(!v)return; const tbl=(h,r)=>!r.length?'<p style="color:#888">Sin registros</p>':`<table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${r.map(r=>`<tr>${r.map(c=>`<td>${c||'—'}</td>`).join('')}</tr>`).join('')}</tbody></table>`; const win=window.open('','_blank'); win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${v.marca} ${v.modelo}</title><style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px}h1{font-size:20px;margin-bottom:4px}h2{font-size:14px;margin:20px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}table{width:100%;border-collapse:collapse;margin-bottom:12px}th{background:#f5f5f5;padding:6px 8px;text-align:left;font-size:11px;border:1px solid #ddd}td{padding:5px 8px;border:1px solid #ddd;font-size:11px}.meta span{display:inline-block;margin:3px 12px 3px 0}</style></head><body><h1>${v.marca||''} ${v.modelo||''} ${v.variante||''}</h1><div class="meta"><span>Matrícula: <strong>${v.matricula||'—'}</strong></span><span>Bastidor: <strong>${v.bastidor||'—'}</strong></span><span>Motor: <strong>${v.codMotor||'—'}</strong></span><span>Compra: <strong>${v.fechaCompra||'—'}</strong></span><span>ITV: <strong>${v.itv||'—'}</strong></span></div><h2>Arreglos</h2>${tbl(['Cambio/Pieza','Marca','Cond.','Km','Fecha','Taller','Observaciones'],(v.arreglos||[]).map(r=>[r.cambio,r.marca,r.condicion,r.kms,r.fecha,r.taller,r.observaciones]))}<h2>Aceite</h2>${tbl(['Marca','Tipo','Filtro','Km','Fecha'],(v.aceite||[]).map(r=>[r.marca,r.tipo,r.filtro,r.kms,r.fecha]))}<h2>Ruedas</h2>${tbl(['Posición','Marca','Medida','Km','Fecha'],(v.ruedas||[]).map(r=>[r.posicion,r.marca,r.medida,r.kms,r.fecha]))}<h2>Mantenimientos</h2>${tbl(['Tipo','Km','Fecha','Notas'],(v.histMantenimientos||[]).map(r=>[r.tipo,r.kms,r.fecha,r.notas]))}<h2>Referencias</h2>${tbl(['Categoría','Nombre','Referencia','Marca','Notas'],(v.referencias||[]).map(r=>[r.categoria,r.nombre,r.referencia,r.marca,r.notas]))}<script>window.onload=()=>window.print()<\/script></body></html>`); win.document.close(); }
+// PDF
+function exportPDF(vid){const v=vehicles.find(x=>x.id===vid);if(!v)return;const tbl=(h,r)=>!r.length?'<p style="color:#888">Sin registros</p>':`<table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${r.map(r=>`<tr>${r.map(c=>`<td>${c||'—'}</td>`).join('')}</tr>`).join('')}</tbody></table>`;const win=window.open('','_blank');win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${v.marca} ${v.modelo}</title><style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px}h1{font-size:20px;margin-bottom:4px}h2{font-size:14px;margin:20px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}table{width:100%;border-collapse:collapse;margin-bottom:12px}th{background:#f5f5f5;padding:6px 8px;text-align:left;font-size:11px;border:1px solid #ddd}td{padding:5px 8px;border:1px solid #ddd;font-size:11px}.meta span{display:inline-block;margin:3px 12px 3px 0}</style></head><body><h1>${v.marca||''} ${v.modelo||''} ${v.variante||''}</h1><div class="meta"><span>Matrícula: <strong>${v.matricula||'—'}</strong></span><span>Bastidor: <strong>${v.bastidor||'—'}</strong></span><span>Motor: <strong>${v.codMotor||'—'}</strong></span><span>Pintura: <strong>${v.codPintura||'—'}</strong></span><span>Km compra: <strong>${v.kmCompra||'—'}</strong></span><span>ITV: <strong>${v.itv||'—'}</strong></span></div><h2>Arreglos</h2>${tbl(['Cambio/Pieza','Marca','Cond.','Km','Fecha','Taller','Precio','Obs.'],(v.arreglos||[]).map(r=>[r.cambio,r.marca,r.condicion,r.kms,r.fecha,r.taller,r.precio?(+r.precio).toFixed(2)+' €':'',r.observaciones]))}<h2>Aceite</h2>${tbl(['Marca','Tipo','Filtro','Km','Fecha','Precio'],(v.aceite||[]).map(r=>[r.marca,r.tipo,r.filtro,r.kms,r.fecha,r.precio?(+r.precio).toFixed(2)+' €':'']))}<h2>Ruedas</h2>${tbl(['Posición','Marca','Medida','Km','Fecha','Precio'],(v.ruedas||[]).map(r=>[r.posicion,r.marca,r.medida,r.kms,r.fecha,r.precio?(+r.precio).toFixed(2)+' €':'']))}<h2>Mantenimientos</h2>${tbl(['Tipo','Km','Fecha','Precio','Notas'],(v.histMantenimientos||[]).map(r=>[r.tipo,r.kms,r.fecha,r.precio?(+r.precio).toFixed(2)+' €':'',r.notas]))}<h2>Combustible</h2>${tbl(['Tipo','Litros','€/L','Importe','Km','Fecha','Gasolinera'],(v.combustible||[]).map(r=>[r.tipo,r.litros,r.preciolitro,r.importe?(+r.importe).toFixed(2)+' €':'',r.kms,r.fecha,r.gasolinera]))}<h2>Tareas pendientes</h2>${tbl(['Tipo','Fecha','Descripción','Estado'],(v.tareas||[]).map(r=>[r.tipo,r.fecha,r.observaciones,r.done?'Completada':'Pendiente']))}<script>window.onload=()=>window.print()<\/script></body></html>`);win.document.close();}
 
-// ── INIT ──────────────────────────────────────────────────────────────────
-loadData();
+// INIT
+(async()=>{
+  const saved=localStorage.getItem('gs');
+  if(saved){
+    try{
+      const s=JSON.parse(saved);
+      const r=await fetch(`${SB_URL}/auth/v1/user`,{headers:{apikey:SB_KEY,Authorization:`Bearer ${s.a}`}});
+      if(r.ok){session={access_token:s.a};await loadData();return;}
+    }catch(e){}
+  }
+  renderLogin();
+})();
 </script>
 </body>
 </html>
