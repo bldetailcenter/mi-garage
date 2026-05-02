@@ -117,6 +117,45 @@ textarea{resize:vertical;min-height:60px}
 .bal-total .bal-label,.bal-total .bal-count{color:rgba(255,255,255,.7)}
 .year-sel{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
 .task-done td{opacity:.5;text-decoration:line-through}
+
+/* ── MÓVIL ── */
+@media(max-width:640px){
+  .app{flex-direction:column}
+  .sidebar{width:100%;min-width:unset;height:auto;border-right:none;border-bottom:1px solid #e5e5e2;flex-direction:row;align-items:center;flex-shrink:0;overflow:visible;position:relative;z-index:50}
+  .sb-head{padding:10px 12px;border-bottom:none;flex:1}
+  .sb-title{font-size:14px}
+  .sb-sub{display:none}
+  .vlist{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border-bottom:1px solid #e5e5e2;max-height:60vh;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+  .vlist.open{display:block}
+  .add-vbtn{display:none}
+  .logout-btn{display:none}
+  .sb-mobile-btns{display:flex;gap:6px;padding:8px 10px;flex-shrink:0;align-items:center}
+  .sb-toggle{padding:6px 10px;font-size:12px;background:#f0f4ff;border:1px solid #c5d0fa;border-radius:7px;cursor:pointer;color:#3b6ef5;font-weight:500;white-space:nowrap}
+  .sb-add{padding:6px 10px;font-size:12px;background:#3b6ef5;color:#fff;border:none;border-radius:7px;cursor:pointer;font-weight:500;white-space:nowrap}
+  .sb-logout{padding:6px 8px;font-size:12px;background:none;border:1px solid #eee;border-radius:7px;cursor:pointer;color:#aaa}
+  .tabs{padding:0 8px}
+  .tab{padding:8px 9px;font-size:11px}
+  .content{padding:10px}
+  .vh-grid{grid-template-columns:1fr 1fr}
+  .balance-grid{grid-template-columns:1fr 1fr}
+  .fg{grid-template-columns:1fr}
+  .ff.s2{grid-column:span 1}
+  .modal{padding:14px}
+  .refs-grid{grid-template-columns:1fr 1fr}
+  .photo-grid{grid-template-columns:1fr 1fr}
+  .docs-grid{grid-template-columns:1fr}
+  table{font-size:11px}
+  th,td{padding:5px 7px}
+  .vh-name{font-size:15px}
+  .hero-photo{height:130px}
+  .km-row{flex-direction:column;align-items:flex-start}
+  .km-row input{max-width:100%;width:100%}
+  .export-bar{gap:6px}
+  .exp-btn{font-size:11px;padding:5px 10px}
+}
+@media(max-width:640px){
+  .sb-mobile-btns-placeholder{display:none}
+}
 </style>
 </head>
 <body>
@@ -176,6 +215,11 @@ function renderShell(){document.getElementById('root').innerHTML=`
   <div class="sidebar">
     <div class="sb-head"><div class="sb-title">🔧 Mi Garaje</div><div class="sb-sub" id="vcount">Cargando...</div></div>
     <div class="vlist" id="vlist"></div>
+    <div class="sb-mobile-btns">
+      <button class="sb-toggle" onclick="toggleVlist()">☰ Vehículos</button>
+      <button class="sb-add" onclick="openAddV()">+</button>
+      <button class="sb-logout" onclick="doLogout()">⏻</button>
+    </div>
     <button class="add-vbtn" onclick="openAddV()">+ Añadir vehículo</button>
     <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
   </div>
@@ -210,7 +254,8 @@ function render(){
   const map={resumen,arreglos,aceite,ruedas,mantenimientos,referencias,combustible,tareas,fotos,documentos,balance};
   cnt.innerHTML=(map[currentTab]||resumen)(v);
 }
-function selV(id){currentId=id;currentTab='resumen';render();}
+function toggleVlist(){document.getElementById('vlist').classList.toggle('open');}
+function selV(id){currentId=id;currentTab='resumen';document.getElementById('vlist').classList.remove('open');render();}
 function setTab(t){currentTab=t;render();}
 // RESUMEN
 function resumen(v){
