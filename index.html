@@ -78,9 +78,14 @@ textarea{resize:vertical;min-height:60px}
 .acell{display:flex;gap:3px}
 .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:12px}
 .photo-card{border:1px solid #e5e5e2;border-radius:10px;overflow:hidden;position:relative;background:#fff}
-.photo-card img{width:100%;height:120px;object-fit:cover;display:block}
+.photo-card img{width:100%;height:120px;object-fit:cover;display:block;cursor:pointer}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px}
+.lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.lightbox-close{position:absolute;top:12px;right:16px;color:#fff;font-size:30px;cursor:pointer;background:none;border:none;line-height:1}
 .photo-label{padding:5px 8px;font-size:11px;color:#666}
 .photo-del{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:5px;padding:2px 6px;font-size:11px;cursor:pointer}
+.photo-star{position:absolute;top:5px;left:5px;background:rgba(0,0,0,.45);color:#fff;border:none;border-radius:5px;padding:2px 6px;font-size:12px;cursor:pointer}
+.photo-star.active{background:#f59e0b}
 .upload-zone{border:2px dashed #ddd;border-radius:10px;padding:20px;text-align:center;font-size:12px;color:#aaa;cursor:pointer}
 .upload-zone:hover{border-color:#3b6ef5;color:#3b6ef5}
 .docs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
@@ -178,7 +183,10 @@ let session=null,vehicles=[],currentId=null,currentTab='resumen',saveTimer=null;
 let SS={arreglos:{c:null,d:'desc'},aceite:{c:null,d:'desc'},ruedas:{c:null,d:'desc'},combustible:{c:null,d:'desc'},mantenimientos:{c:null,d:'desc'},tareas:{c:null,d:'desc'}};
 // AUTH
 function renderLogin(err=''){document.getElementById('root').innerHTML=`<div class="login-wrap"><div class="login-box"><div class="login-title">🔧 Mi Garaje</div><div class="login-sub">Inicia sesión para continuar</div><div class="login-field"><label>Email</label><input type="email" id="l_email" placeholder="tu@email.com"></div><div class="login-field"><label>Contraseña</label><input type="password" id="l_pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div><div class="login-err" id="l_err">${err}</div><button class="login-btn" onclick="doLogin()">Entrar</button></div></div>`;}
-async function doLogin(){const email=document.getElementById('l_email').value,pass=document.getElementById('l_pass').value;if(!email||!pass){document.getElementById('l_err').textContent='Rellena todos los campos';return;}document.getElementById('l_err').textContent='Comprobando...';const d=await sbSignIn(email,pass);if(d.access_token){session=d;localStorage.setItem('gs',JSON.stringify({a:d.access_token}));await loadData();}else document.getElementById('l_err').textContent='Email o contraseña incorrectos';}
+async function doLogin(){const email=document.getElementById('l_email').value,pass=document.getElementById('l_pass').value;if(!email||!pass){document.getElementById('l_err').textContent='Rellena todos los campos';return;}document.getElementById('l_err').textContent='Comprobando...';const d=await sbSignIn(email,pass);if(d.access_token){session=d;localStorage.setItem('gs',JSON.stringify({a:d.access_token,r:d.refresh_token,exp:Date.now()+3500000}));await loadData();}else document.getElementById('l_err').textContent='Email o contraseña incorrectos';}
+async function refreshSession(){try{const s=JSON.parse(localStorage.getItem('gs')||'{}');if(!s.r)return false;const d=await(await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:s.r})})).json();if(d.access_token){session={access_token:d.access_token};localStorage.setItem('gs',JSON.stringify({a:d.access_token,r:d.refresh_token,exp:Date.now()+3500000}));return true;}return false;}catch(e){return false;}}
+// Renovar token automáticamente cada 45 minutos
+setInterval(async()=>{if(session)await refreshSession();},45*60*1000);
 async function doLogout(){if(session)await sbSignOut(session.access_token);session=null;vehicles=[];currentId=null;localStorage.removeItem('gs');renderLogin();}
 
 // DATA
@@ -259,7 +267,8 @@ function selV(id){currentId=id;currentTab='resumen';document.getElementById('vli
 function setTab(t){currentTab=t;render();}
 // RESUMEN
 function resumen(v){
-  const hero=(v.fotos||[])[0]?`<img class="hero-photo" src="${v.fotos[0].url||v.fotos[0].data}" alt="foto">`:'';
+  const portadaIdx=v.portadaIdx||0;
+  const hero=(v.fotos||[])[portadaIdx]?`<img class="hero-photo" src="${v.fotos[portadaIdx].url||v.fotos[portadaIdx].data}" alt="foto">`:'';
   const pendTareas=(v.tareas||[]).filter(t=>!t.done).length;
   let pending='';
   if(v._kmCheck&&(v.mantenimientos||[]).length){
@@ -412,7 +421,38 @@ function balance(v){
 function setBalYear(vid,y){const v=vehicles.find(x=>x.id===vid);if(!v)return;v._balYear=y;render();}
 
 // FOTOS
-function fotos(v){const cards=(v.fotos||[]).map((p,i)=>`<div class="photo-card"><img src="${p.url||p.data}" alt="${esc(p.label||'')}"><button class="photo-del" onclick="delFoto('${v.id}',${i})">×</button><div class="photo-label">${esc(p.label||'Sin título')}</div></div>`).join('');return `<div class="sec-hdr"><div class="sec-title">Fotos del vehículo</div></div><div class="photo-grid">${cards}</div><div class="upload-zone" onclick="document.getElementById('photo-input').click()"><input type="file" id="photo-input" accept="image/*" multiple style="display:none" onchange="handlePhotos('${v.id}',this)">📷 Haz clic para añadir fotos</div>`;}
+function fotos(v){
+  const portada=v.portadaIdx||0;
+  const cards=(v.fotos||[]).map((p,i)=>`
+    <div class="photo-card">
+      <img src="${p.url||p.data}" alt="${esc(p.label||'')}" onclick="openLightbox('${v.id}',${i})">
+      <button class="photo-star ${i===portada?'active':''}" onclick="setPortada('${v.id}',${i})" title="Usar como foto de cabecera">★</button>
+      <button class="photo-del" onclick="delFoto('${v.id}',${i})">×</button>
+      <div class="photo-label">${esc(p.label||'Sin título')}${i===portada?' ★':''}</div>
+    </div>`).join('');
+  return `<div class="sec-hdr"><div class="sec-title">Fotos del vehículo</div></div>
+  ${(v.fotos||[]).length?'<div style="font-size:11px;color:#888;margin-bottom:8px">Toca ★ en una foto para usarla como cabecera en el resumen</div>':''}
+  <div class="photo-grid">${cards}</div>
+  <div class="upload-zone" onclick="document.getElementById('photo-input').click()">
+    <input type="file" id="photo-input" accept="image/*" multiple style="display:none" onchange="handlePhotos('${v.id}',this)">
+    📷 Haz clic para añadir fotos
+  </div>`;
+}
+
+function openLightbox(vid,idx){
+  const v=vehicles.find(x=>x.id===vid); if(!v)return;
+  const p=v.fotos[idx]; if(!p)return;
+  const lb=document.createElement('div');
+  lb.className='lightbox';
+  lb.innerHTML=`<button class="lightbox-close" onclick="this.parentElement.remove()">✕</button><img src="${p.url||p.data}" alt="${esc(p.label||'')}">`;
+  lb.addEventListener('click',e=>{ if(e.target===lb) lb.remove(); });
+  document.body.appendChild(lb);
+}
+
+function setPortada(vid,idx){
+  const v=vehicles.find(x=>x.id===vid); if(!v)return;
+  v.portadaIdx=idx; scheduleSave(vid); render();
+}
 async function handlePhotos(vid,input){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.fotos=v.fotos||[];notif('Subiendo fotos...');for(const f of Array.from(input.files)){const b64=await fileToBase64(f),path=`${vid}/fotos/${uid()}_${f.name}`,url=await sbUpload(path,b64,f.type,session.access_token);v.fotos.push({id:uid(),label:f.name.replace(/\.[^.]+$/,''),url:url||b64,path:url?path:null});}await doSave(vid);notif('Fotos guardadas');render();}
 async function delFoto(vid,idx){const v=vehicles.find(x=>x.id===vid);if(!v)return;const f=v.fotos[idx];if(f?.path)await sbDelFile(f.path,session.access_token);v.fotos.splice(idx,1);await doSave(vid);render();}
 
@@ -444,8 +484,18 @@ function exportPDF(vid){const v=vehicles.find(x=>x.id===vid);if(!v)return;const 
   if(saved){
     try{
       const s=JSON.parse(saved);
-      const r=await fetch(`${SB_URL}/auth/v1/user`,{headers:{apikey:SB_KEY,Authorization:`Bearer ${s.a}`}});
-      if(r.ok){session={access_token:s.a};await loadData();return;}
+      // Si el token no ha caducado, úsalo directamente
+      if(s.exp&&Date.now()<s.exp){
+        session={access_token:s.a};
+        const r=await fetch(`${SB_URL}/auth/v1/user`,{headers:{apikey:SB_KEY,Authorization:`Bearer ${s.a}`}});
+        if(r.ok){await loadData();return;}
+      }
+      // Si caducó, intentar renovar con refresh token
+      if(s.r){
+        session={access_token:s.a};
+        const ok=await refreshSession();
+        if(ok){await loadData();return;}
+      }
     }catch(e){}
   }
   renderLogin();
