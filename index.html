@@ -422,7 +422,26 @@ function tareas(v){
   <tbody>${pend.length?pend.map(row).join(''):noRows(4)}${done.length?`<tr><td colspan="4" style="padding:8px 10px;font-size:11px;color:#aaa;font-weight:600;background:#fafaf8">COMPLETADAS</td></tr>${done.map(row).join('')}`:''}</tbody></table></div>`;
 }
 function addTarea(vid){modal(tareaForm());}
-function tareaForm(r={}){return `<div class="modal"><div class="modal-title">${r.id?'Editar':'Nueva'} tarea</div><div class="fg"><div class="ff"><label>Tipo de acción</label><select id="f_tipo"><option ${r.tipo==='Mecánica'?'selected':''}>Mecánica</option><option ${r.tipo==='Estética'?'selected':''}>Estética</option></select></div>${fi('fecha','Fecha de registro',r.fecha||new Date().toISOString().slice(0,10),'date')}${fta('obs','Descripción / Observaciones',r.observaciones||'')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveTarea('${curV().id}'${r.id?`,'${r.id}'`:''})">Guardar</button></div></div>`;}
+function tareaForm(r){
+  r=r||{};
+  const esMec=r.tipo==='Mecánica'?'selected':'';
+  const esEst=r.tipo==='Estética'?'selected':'';
+  const titulo=r.id?'Editar':'Nueva';
+  const fecha=r.fecha||new Date().toISOString().slice(0,10);
+  const obs=esc(r.observaciones||'');
+  const vid=curV().id;
+  const idArg=r.id?`,'${r.id}'`:'';
+  return `<div class="modal"><div class="modal-title">${titulo} tarea</div><div class="fg">
+    <div class="ff"><label>Tipo de acción</label><select id="f_tipo">
+      <option ${esMec}>Mecánica</option><option ${esEst}>Estética</option>
+    </select></div>
+    ${fi('fecha','Fecha de registro',fecha,'date')}
+    <div class="ff s2"><label>Descripción / Observaciones</label><textarea id="f_obs">${obs}</textarea></div>
+  </div><div class="mact">
+    <button class="btn-c" onclick="closeModal()">Cancelar</button>
+    <button class="btn-s" onclick="saveTarea('${vid}'${idArg})">Guardar</button>
+  </div></div>`;
+}
 function editTarea(vid,tid){modal(tareaForm((curV()?.tareas||[]).find(x=>x.id===tid)||{}));}
 function saveTarea(vid,id=null){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.tareas=v.tareas||[];const ex=id?(v.tareas.find(x=>x.id===id)||{}):{}; const rec={id:id||uid(),tipo:document.getElementById('f_tipo')?.value,fecha:gf('fecha'),observaciones:document.getElementById('f_obs')?.value,done:ex.done||false};if(id){const i=v.tareas.findIndex(x=>x.id===id);v.tareas[i]=rec;}else v.tareas.push(rec);scheduleSave(vid);closeModal();render();}
 function balance(v){
