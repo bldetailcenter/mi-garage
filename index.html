@@ -372,11 +372,39 @@ function saveRef(vid,id=null){const v=vehicles.find(x=>x.id===vid);if(!v)return;
 
 // COMBUSTIBLE
 function combustible(v){
-  const rows=sortData(v.combustible||[],'combustible').map(r=>`<tr><td>${esc(r.tipo)}</td><td>${r.litros?Number(r.litros).toFixed(2):'—'}</td><td>${r.preciolitro?Number(r.preciolitro).toFixed(3)+' €':'—'}</td><td>${eur(r.importe)}</td><td>${r.kms?Number(r.kms).toLocaleString():'—'}</td><td>${esc(r.fecha)}</td><td>${esc(r.gasolinera)}</td><td><div class="acell"><button class="edt-btn" onclick="editCombustible('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('combustible','${r.id}')">×</button></div></td></tr>`).join('');
-  const totalL=(v.combustible||[]).reduce((s,r)=>s+parseFloat(r.litros||0),0);
-  const totalE=(v.combustible||[]).reduce((s,r)=>s+parseFloat(r.importe||0),0);
+  const comb=v.combustible||[];
+  const rows=sortData(comb,'combustible').map(r=>`<tr><td>${esc(r.tipo)}</td><td>${r.litros?Number(r.litros).toFixed(2):'—'}</td><td>${r.preciolitro?Number(r.preciolitro).toFixed(3)+' €':'—'}</td><td>${eur(r.importe)}</td><td>${r.kms?Number(r.kms).toLocaleString():'—'}</td><td>${esc(r.fecha)}</td><td>${esc(r.gasolinera)}</td><td><div class="acell"><button class="edt-btn" onclick="editCombustible('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('combustible','${r.id}')">×</button></div></td></tr>`).join('');
+  const totalL=comb.reduce((s,r)=>s+parseFloat(r.litros||0),0);
+  const totalE=comb.reduce((s,r)=>s+parseFloat(r.importe||0),0);
+  // Resumen mensual
+  const meses={};
+  comb.forEach(r=>{
+    if(!r.fecha)return;
+    const key=r.fecha.slice(0,7); // YYYY-MM
+    if(!meses[key])meses[key]={l:0,e:0,n:0};
+    meses[key].l+=parseFloat(r.litros||0);
+    meses[key].e+=parseFloat(r.importe||0);
+    meses[key].n++;
+  });
+  const mesesOrdenados=Object.keys(meses).sort((a,b)=>b.localeCompare(a));
+  const MESES_ES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const mensualRows=mesesOrdenados.map(k=>{
+    const [y,m]=k.split('-');
+    const label=`${MESES_ES[parseInt(m)-1]} ${y}`;
+    return `<tr><td><strong>${label}</strong></td><td>${meses[k].l.toFixed(1)} L</td><td>${meses[k].e.toFixed(2)} €</td><td>${meses[k].n} repostaje${meses[k].n!==1?'s':''}</td></tr>`;
+  }).join('');
+
   return `<div class="sec-hdr"><div class="sec-title">Repostajes</div><button class="add-btn" onclick="addCombustible('${v.id}')">+ Añadir</button></div>
-  ${(v.combustible||[]).length?`<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap"><div class="bal-card" style="flex:1;min-width:120px"><div class="bal-label">Total litros</div><div class="bal-amount" style="font-size:17px">${totalL.toFixed(1)} L</div></div><div class="bal-card" style="flex:1;min-width:120px"><div class="bal-label">Total gastado</div><div class="bal-amount" style="font-size:17px">${totalE.toFixed(2)} €</div></div></div>`:''}
+  ${comb.length?`<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+    <div class="bal-card" style="flex:1;min-width:120px"><div class="bal-label">Total litros</div><div class="bal-amount" style="font-size:17px">${totalL.toFixed(1)} L</div></div>
+    <div class="bal-card" style="flex:1;min-width:120px"><div class="bal-label">Total gastado</div><div class="bal-amount" style="font-size:17px">${totalE.toFixed(2)} €</div></div>
+  </div>`:''}
+  ${mesesOrdenados.length?`<div style="margin-bottom:14px">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">Resumen mensual</div>
+    <div class="tbl-wrap"><table><thead><tr><th>Mes</th><th>Litros</th><th>Gasto</th><th>Repostajes</th></tr></thead>
+    <tbody>${mensualRows}</tbody></table></div>
+  </div>`:''}
+  <div style="font-size:13px;font-weight:600;margin-bottom:8px">Todos los registros</div>
   <div class="tbl-wrap"><table><thead><tr>${th('combustible','tipo','Tipo')}${th('combustible','litros','Litros')}${th('combustible','preciolitro','€/L')}${th('combustible','importe','Importe')}${th('combustible','kms','Km')}${th('combustible','fecha','Fecha')}${th('combustible','gasolinera','Gasolinera')}<th></th></tr></thead><tbody>${rows||noRows(8)}</tbody></table></div>`;
 }
 function combForm(r={}){return `<div class="modal"><div class="modal-title">${r.id?'Editar':'Nuevo'} repostaje</div><div class="fg"><div class="ff"><label>Tipo de combustible</label><select id="f_tipo"><option ${r.tipo==='Gasolina 95'?'selected':''}>Gasolina 95</option><option ${r.tipo==='Gasolina 98'?'selected':''}>Gasolina 98</option><option ${r.tipo==='Diésel'?'selected':''}>Diésel</option><option ${r.tipo==='Diésel Premium'?'selected':''}>Diésel Premium</option><option ${r.tipo==='GLP'?'selected':''}>GLP</option><option ${r.tipo==='Eléctrico'?'selected':''}>Eléctrico (kWh)</option></select></div>${fi('litros','Litros / kWh',r.litros,'number')}${fi('preciolitro','Precio/L o kWh (€)',r.preciolitro,'number')}${fi('importe','Importe total (€)',r.importe,'number')}${fi('kms','Km',r.kms,'number')}${fi('fecha','Fecha',r.fecha,'date')}${fi('gasolinera','Gasolinera / Punto recarga',r.gasolinera)}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveCombustible('${curV().id}'${r.id?`,'${r.id}'`:''})">Guardar</button></div></div>`;}
