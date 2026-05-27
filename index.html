@@ -255,8 +255,7 @@ function renderShell(){document.getElementById('root').innerHTML=`
   </div>
   <div class="main">
     <div class="tabs" id="tabs" style="display:none">
-      <div class="tab active" data-tab="dashboard"     onclick="setTab('dashboard')">🏠 Inicio</div>
-      <div class="tab"        data-tab="resumen"        onclick="setTab('resumen')">Resumen</div>
+      <div class="tab active" data-tab="resumen"        onclick="setTab('resumen')">Resumen</div>
       <div class="tab"        data-tab="arreglos"       onclick="setTab('arreglos')">Arreglos</div>
       <div class="tab"        data-tab="aceite"         onclick="setTab('aceite')">Aceite</div>
       <div class="tab"        data-tab="ruedas"         onclick="setTab('ruedas')">Ruedas</div>
@@ -280,13 +279,22 @@ function render(){
   const tabs=document.getElementById('tabs'),cnt=document.getElementById('content');
   if(!currentId){tabs.style.display='none';cnt.innerHTML=renderDashboardGlobal();return;}
   tabs.style.display='flex';
+  // Botón volver al dashboard
+  if(!document.getElementById('btn-dashboard')){
+    const btn=document.createElement('div');
+    btn.id='btn-dashboard';
+    btn.style.cssText='padding:10px 12px;font-size:12px;cursor:pointer;color:#3b6ef5;font-weight:500;white-space:nowrap;flex-shrink:0;border-right:1px solid #e5e5e2;margin-right:4px';
+    btn.textContent='← Todos';
+    btn.onclick=()=>{currentId=null;render();};
+    tabs.insertBefore(btn,tabs.firstChild);
+  }
   tabs.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
   const v=curV();if(!v)return;
   const map={dashboard,resumen,arreglos,aceite,ruedas,mantenimientos,referencias,combustible,tareas,fotos,documentos,balance};
   cnt.innerHTML=(map[currentTab]||resumen)(v);
 }
 function toggleVlist(){document.getElementById('vlist').classList.toggle('open');}
-function selV(id){currentId=id;currentTab='dashboard';document.getElementById('vlist').classList.remove('open');render();}
+function selV(id){currentId=id;currentTab='resumen';document.getElementById('vlist').classList.remove('open');render();}
 function setTab(t){currentTab=t;render();}
 
 function dashboard(v){
