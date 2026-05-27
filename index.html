@@ -121,6 +121,28 @@ textarea{resize:vertical;min-height:60px}
 .bal-total{background:#3b6ef5;color:#fff;border-color:#3b6ef5}
 .bal-total .bal-label,.bal-total .bal-count{color:rgba(255,255,255,.7)}
 .year-sel{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px}
+.dash-card{background:#fff;border:1px solid #e5e5e2;border-radius:12px;padding:14px;cursor:pointer;transition:box-shadow .15s}
+.dash-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.dash-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.dash-car-name{font-size:14px;font-weight:700}
+.dash-car-plate{font-size:11px;color:#888;font-family:monospace;margin-top:2px}
+.dash-alerts{display:flex;flex-direction:column;gap:5px}
+.dash-alert{font-size:11px;padding:5px 9px;border-radius:6px;border:1px solid}
+.dash-ok{background:#e6f4ea;border-color:#a8d5b5;color:#1a7a3a}
+.dash-warn{background:#fff8e1;border-color:#fde68a;color:#b45309}
+.dash-danger{background:#fdecea;border-color:#f5c2bf;color:#b91c1c}
+.dash-neutral{background:#f4f4f2;border-color:#ddd;color:#666}
+.dash-hero{width:100%;height:90px;object-fit:cover;border-radius:8px;margin-bottom:10px}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px}
+.dash-card{background:#fff;border:1px solid #e5e5e2;border-radius:12px;padding:14px;cursor:pointer}
+.dash-card:hover{border-color:#3b6ef5;box-shadow:0 2px 8px rgba(59,110,245,.1)}
+.dash-card-title{font-size:14px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.dash-alert{font-size:12px;padding:5px 8px;border-radius:6px;margin-bottom:5px;border:1px solid}
+.dash-alert-danger{background:#fdecea;border-color:#f5c2bf;color:#b91c1c}
+.dash-alert-warn{background:#fff8e1;border-color:#fde68a;color:#b45309}
+.dash-alert-ok{background:#e6f4ea;border-color:#a8d5b5;color:#1a7a3a}
+.dash-empty{color:#aaa;font-size:12px;padding:4px 0}
 .task-done td{opacity:.5;text-decoration:line-through}
 
 /* ── MÓVIL ── */
@@ -233,7 +255,8 @@ function renderShell(){document.getElementById('root').innerHTML=`
   </div>
   <div class="main">
     <div class="tabs" id="tabs" style="display:none">
-      <div class="tab active" data-tab="resumen"        onclick="setTab('resumen')">Resumen</div>
+      <div class="tab active" data-tab="dashboard"     onclick="setTab('dashboard')">🏠 Inicio</div>
+      <div class="tab"        data-tab="resumen"        onclick="setTab('resumen')">Resumen</div>
       <div class="tab"        data-tab="arreglos"       onclick="setTab('arreglos')">Arreglos</div>
       <div class="tab"        data-tab="aceite"         onclick="setTab('aceite')">Aceite</div>
       <div class="tab"        data-tab="ruedas"         onclick="setTab('ruedas')">Ruedas</div>
@@ -255,16 +278,82 @@ function render(){
   document.getElementById('vcount').textContent=`${vehicles.length} vehículo${vehicles.length!==1?'s':''}`;
   document.getElementById('vlist').innerHTML=vehicles.map(v=>`<div class="vitem ${v.id===currentId?'active':''}" onclick="selV('${v.id}')"><div class="vname">${esc(v.marca||'—')} ${esc(v.modelo||'')}</div><div class="vplate">${esc(v.matricula||'Sin matrícula')}</div></div>`).join('');
   const tabs=document.getElementById('tabs'),cnt=document.getElementById('content');
-  if(!currentId){tabs.style.display='none';cnt.innerHTML='<div class="empty">🔧<br>Selecciona o añade un vehículo</div>';return;}
+  if(!currentId){tabs.style.display='none';cnt.innerHTML=renderDashboardGlobal();return;}
   tabs.style.display='flex';
   tabs.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
   const v=curV();if(!v)return;
-  const map={resumen,arreglos,aceite,ruedas,mantenimientos,referencias,combustible,tareas,fotos,documentos,balance};
+  const map={dashboard,resumen,arreglos,aceite,ruedas,mantenimientos,referencias,combustible,tareas,fotos,documentos,balance};
   cnt.innerHTML=(map[currentTab]||resumen)(v);
 }
 function toggleVlist(){document.getElementById('vlist').classList.toggle('open');}
-function selV(id){currentId=id;currentTab='resumen';document.getElementById('vlist').classList.remove('open');render();}
+function selV(id){currentId=id;currentTab='dashboard';document.getElementById('vlist').classList.remove('open');render();}
 function setTab(t){currentTab=t;render();}
+
+function dashboard(v){
+  const now=new Date();
+  const kmCheck=parseFloat(v._kmCheck||0);
+  const alerts=[];
+
+  // ITV
+  if(v.itv){
+    const diff=(new Date(v.itv)-now)/86400000;
+    if(diff<0) alerts.push({cls:'dash-danger',txt:`⚠ ITV caducada (${v.itv})`});
+    else if(diff<90) alerts.push({cls:'dash-warn',txt:`⚡ ITV próxima — ${Math.round(diff)} días (${v.itv})`});
+    else alerts.push({cls:'dash-ok',txt:`✓ ITV vigente (${v.itv})`});
+  } else {
+    alerts.push({cls:'dash-neutral',txt:'Sin fecha de ITV registrada'});
+  }
+
+  // Mantenimientos
+  if(kmCheck&&(v.mantenimientos||[]).length){
+    v.mantenimientos.forEach(m=>{
+      const last=(v.histMantenimientos||[]).filter(h=>h.tipo===m.tipo).sort((a,b)=>b.kms-a.kms)[0];
+      const next=(last?parseFloat(last.kms):0)+parseFloat(m.intervalKm);
+      const rem=next-kmCheck;
+      if(rem<=0) alerts.push({cls:'dash-danger',txt:`⚠ ${m.tipo} VENCIDO por ${Math.abs(Math.round(rem)).toLocaleString()} km`});
+      else if(rem<parseFloat(m.intervalKm)*0.1) alerts.push({cls:'dash-warn',txt:`⚡ ${m.tipo} próximo — ${Math.round(rem).toLocaleString()} km`});
+    });
+  }
+
+  // Tareas pendientes
+  const tareasPend=(v.tareas||[]).filter(t=>!t.done).length;
+  if(tareasPend) alerts.push({cls:'dash-warn',txt:`📋 ${tareasPend} tarea${tareasPend!==1?'s':''} pendiente${tareasPend!==1?'s':''}`});
+
+  const hero=(v.fotos||[])[v.portadaIdx||0];
+  const alertsHtml=alerts.map(a=>`<div class="dash-alert ${a.cls}">${a.txt}</div>`).join('');
+
+  return `
+  ${hero?`<img class="dash-hero" src="${hero.url||hero.data}" alt="foto">`:''}
+  <div class="dash-alerts">${alertsHtml||'<div class="dash-alert dash-ok">✓ Todo en orden</div>'}</div>`;
+}
+
+// Dashboard global — se muestra cuando no hay vehículo seleccionado
+function renderDashboardGlobal(){
+  if(!vehicles.length) return '<div class="empty">🔧<br>Añade tu primer vehículo</div>';
+  const cards=vehicles.map(v=>{
+    const now=new Date();
+    const kmCheck=parseFloat(v._kmCheck||0);
+    const alerts=[];
+    if(v.itv){const diff=(new Date(v.itv)-now)/86400000;if(diff<0)alerts.push({cls:'dash-danger',txt:`⚠ ITV caducada`});else if(diff<90)alerts.push({cls:'dash-warn',txt:`⚡ ITV en ${Math.round(diff)} días`});}
+    if(kmCheck&&(v.mantenimientos||[]).length){v.mantenimientos.forEach(m=>{const last=(v.histMantenimientos||[]).filter(h=>h.tipo===m.tipo).sort((a,b)=>b.kms-a.kms)[0];const next=(last?parseFloat(last.kms):0)+parseFloat(m.intervalKm);const rem=next-kmCheck;if(rem<=0)alerts.push({cls:'dash-danger',txt:`⚠ ${m.tipo} vencido`});else if(rem<parseFloat(m.intervalKm)*0.1)alerts.push({cls:'dash-warn',txt:`⚡ ${m.tipo} próximo`});});}
+    const tp=(v.tareas||[]).filter(t=>!t.done).length;
+    if(tp)alerts.push({cls:'dash-warn',txt:`📋 ${tp} tarea${tp!==1?'s':''} pendiente${tp!==1?'s':''}`});
+    const hero=(v.fotos||[])[v.portadaIdx||0];
+    const status=alerts.some(a=>a.cls==='dash-danger')?'b-danger':alerts.some(a=>a.cls==='dash-warn')?'b-warn':'b-ok';
+    const statusTxt=alerts.some(a=>a.cls==='dash-danger')?'Requiere atención':alerts.some(a=>a.cls==='dash-warn')?'Revisar':'Todo OK';
+    return `<div class="dash-card" onclick="selV('${v.id}')">
+      ${hero?`<img class="dash-hero" src="${hero.url||hero.data}" alt="foto">`:''}
+      <div class="dash-card-top">
+        <div><div class="dash-car-name">${esc(v.marca||'—')} ${esc(v.modelo||'')}</div><div class="dash-car-plate">${esc(v.matricula||'—')}</div></div>
+        <span class="badge ${status}">${statusTxt}</span>
+      </div>
+      <div class="dash-alerts">${alerts.length?alerts.map(a=>`<div class="dash-alert ${a.cls}">${a.txt}</div>`).join(''):'<div class="dash-alert dash-ok">✓ Todo en orden</div>'}</div>
+    </div>`;
+  }).join('');
+  return `<div style="font-size:15px;font-weight:600;margin-bottom:4px">🏠 Mi Garaje</div>
+  <div style="font-size:12px;color:#888;margin-bottom:4px">${vehicles.length} vehículo${vehicles.length!==1?'s':''} · Toca una tarjeta para ver el detalle</div>
+  <div class="dash-grid">${cards}</div>`;
+}
 // RESUMEN
 function resumen(v){
   const portadaIdx=v.portadaIdx||0;
@@ -351,7 +440,7 @@ function saveRueda(vid,id=null){const v=vehicles.find(x=>x.id===vid);if(!v)retur
 // MANTENIMIENTOS
 function mantenimientos(v){
   const pr=(v.mantenimientos||[]).map(m=>`<tr><td>${esc(m.tipo)}</td><td>${Number(m.intervalKm).toLocaleString()} km</td><td>${esc(m.notas)}</td><td><button class="del-btn" onclick="delRec('mantenimientos','${m.id}')">×</button></td></tr>`).join('');
-  const hr=sortData(v.histMantenimientos||[],'mantenimientos').map(h=>`<tr><td>${esc(h.tipo)}</td><td>${h.kms?Number(h.kms).toLocaleString():'—'}</td><td>${esc(h.fecha)}</td><td>${eur(h.precio)}</td><td>${esc(h.notas)}</td><td><button class="del-btn" onclick="delRec('histMantenimientos','${h.id}')">×</button></td></tr>`).join('');
+  const hr=sortData(v.histMantenimientos||[],'mantenimientos').map(h=>`<tr><td>${esc(h.tipo)}</td><td>${h.kms?Number(h.kms).toLocaleString():'—'}</td><td>${esc(h.fecha)}</td><td>${eur(h.precio)}</td><td>${esc(h.notas)}</td><td><div class="acell"><button class="edt-btn" onclick="editMantHist('${v.id}','${h.id}')">Edit</button><button class="del-btn" onclick="delRec('histMantenimientos','${h.id}')">×</button></div></td></tr>`).join('');
   return `<div style="margin-bottom:18px"><div class="sec-hdr"><div class="sec-title">Periodicidades del fabricante</div><button class="add-btn" onclick="addMantPlan('${v.id}')">+ Añadir</button></div>
   <div class="tbl-wrap"><table><thead><tr><th>Mantenimiento</th><th>Intervalo</th><th>Notas</th><th></th></tr></thead><tbody>${pr||noRows(4)}</tbody></table></div></div>
   <div><div class="sec-hdr"><div class="sec-title">Historial de mantenimientos realizados</div><button class="add-btn" onclick="addMantHist('${v.id}')">+ Registrar</button></div>
@@ -360,7 +449,17 @@ function mantenimientos(v){
 function addMantPlan(vid){modal(`<div class="modal"><div class="modal-title">Periodicidad del fabricante</div><div class="fg">${fi('tipo','Tipo (ej. Correa distribución)')}${fi('intervalKm','Cada cuántos km','','number')}${fta('notas','Notas')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveMantPlan('${vid}')">Guardar</button></div></div>`);}
 function saveMantPlan(vid){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.mantenimientos=v.mantenimientos||[];v.mantenimientos.push({id:uid(),tipo:gf('tipo'),intervalKm:gf('intervalKm'),notas:document.getElementById('f_notas')?.value});scheduleSave(vid);closeModal();render();}
 function addMantHist(vid){const v=vehicles.find(x=>x.id===vid);if(!v)return;const opts=(v.mantenimientos||[]).map(m=>`<option>${esc(m.tipo)}</option>`).join('')+'<option>Otro</option>';modal(`<div class="modal"><div class="modal-title">Registrar mantenimiento</div><div class="fg"><div class="ff s2"><label>Tipo</label><select id="f_tipo" style="width:100%">${opts}</select></div>${fi('kms','Km','','number')}${fi('fecha','Fecha','','date')}${fi('precio','Precio (€)','','number')}${fta('notas','Notas')}</div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveMantHist('${vid}')">Guardar</button></div></div>`);}
-function saveMantHist(vid){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.histMantenimientos=v.histMantenimientos||[];v.histMantenimientos.push({id:uid(),tipo:document.getElementById('f_tipo')?.value,kms:gf('kms'),fecha:gf('fecha'),precio:gf('precio'),notas:document.getElementById('f_notas')?.value});scheduleSave(vid);closeModal();render();}
+function editMantHist(vid,hid){
+  const v=vehicles.find(x=>x.id===vid);if(!v)return;
+  const h=(v.histMantenimientos||[]).find(x=>x.id===hid)||{};
+  const opts=(v.mantenimientos||[]).map(m=>`<option ${m.tipo===h.tipo?'selected':''}>${esc(m.tipo)}</option>`).join('')+'<option '+(!(v.mantenimientos||[]).find(m=>m.tipo===h.tipo)?'selected':'')+'>Otro</option>';
+  modal(`<div class="modal"><div class="modal-title">Editar mantenimiento</div><div class="fg">
+    <div class="ff s2"><label>Tipo</label><select id="f_tipo" style="width:100%">${opts}</select></div>
+    ${fi('kms','Km',h.kms,'number')}${fi('fecha','Fecha',h.fecha,'date')}${fi('precio','Precio (€)',h.precio,'number')}
+    <div class="ff s2"><label>Notas</label><textarea id="f_notas">${esc(h.notas||'')}</textarea></div>
+  </div><div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveMantHist('${vid}','${hid}')">Guardar</button></div></div>`);
+}
+function saveMantHist(vid,id=null){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.histMantenimientos=v.histMantenimientos||[];const rec={id:id||uid(),tipo:document.getElementById('f_tipo')?.value,kms:gf('kms'),fecha:gf('fecha'),precio:gf('precio'),notas:document.getElementById('f_notas')?.value};if(id){const i=v.histMantenimientos.findIndex(x=>x.id===id);v.histMantenimientos[i]=rec;}else v.histMantenimientos.push(rec);scheduleSave(vid);closeModal();render();}
 
 // REFERENCIAS
 const REF_CATS=['Filtro de aceite','Filtro de habitáculo','Filtro de combustible','Filtro de aire','Pastillas freno','Discos freno','Bujías','Correa distribución','Correa accesorios','Amortiguadores','Batería','Otro'];
