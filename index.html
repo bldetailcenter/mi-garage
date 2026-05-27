@@ -212,7 +212,7 @@ setInterval(async()=>{if(session)await refreshSession();},45*60*1000);
 async function doLogout(){if(session)await sbSignOut(session.access_token);session=null;vehicles=[];currentId=null;localStorage.removeItem('gs');renderLogin();}
 
 // DATA
-async function loadData(){renderShell();try{const rows=await sbAll(session.access_token);vehicles=Array.isArray(rows)?rows.map(r=>r.data):[];if(vehicles.length&&!currentId)currentId=vehicles[0].id;}catch(e){notif('Error cargando datos');}render();}
+async function loadData(){renderShell();try{const rows=await sbAll(session.access_token);vehicles=Array.isArray(rows)?rows.map(r=>r.data):[];}catch(e){notif('Error cargando datos');}render();}
 function scheduleSave(vid){clearTimeout(saveTimer);saveTimer=setTimeout(()=>doSave(vid||currentId),700);}
 async function doSave(vid){const v=vehicles.find(x=>x.id===vid);if(v)await sbUpsert(v,session.access_token).catch(()=>notif('Error al guardar'));}
 
