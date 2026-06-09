@@ -398,7 +398,7 @@ function resumen(v){
   </div>
   <div class="km-box">
     <div style="font-size:13px;font-weight:600">Comprobador de mantenimientos</div>
-    <div class="km-row"><input type="number" placeholder="Km actuales del vehículo" value="${esc(v._kmCheck||'')}" oninput="updKm('${v.id}',this.value)"><span style="font-size:12px;color:#888">Introduce los km para ver pendientes</span></div>
+    <div class="km-row"><input type="number" id="km-check-input" placeholder="Km actuales del vehículo" value="${esc(v._kmCheck||'')}" onchange="updKm('${v.id}',this.value)" onblur="updKm('${v.id}',this.value)"><span style="font-size:12px;color:#888">Introduce los km para ver pendientes</span></div>
     ${pending}
   </div>
   <div class="notes-box">
@@ -410,7 +410,7 @@ function resumen(v){
     <button class="exp-btn" onclick="exportPDF('${v.id}')">⬇ Exportar PDF</button>
   </div>`;
 }
-function updKm(id,val){const v=vehicles.find(x=>x.id===id);if(!v)return;v._kmCheck=val;scheduleSave(id);render();}
+function updKm(id,val){const v=vehicles.find(x=>x.id===id);if(!v||v._kmCheck===val)return;v._kmCheck=val;scheduleSave(id);render();}
 function updNotes(id,val){const v=vehicles.find(x=>x.id===id);if(!v)return;v.notas=val;scheduleSave(id);}
 
 // ARREGLOS
