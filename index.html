@@ -269,6 +269,7 @@ function renderShell(){document.getElementById('root').innerHTML=`
       <div class="tab"        data-tab="tareas"         onclick="setTab('tareas')">📋 Tareas</div>
       <div class="tab"        data-tab="fotos"          onclick="setTab('fotos')">Fotos</div>
       <div class="tab"        data-tab="documentos"     onclick="setTab('documentos')">Documentos</div>
+      <div class="tab"        data-tab="itv"            onclick="setTab('itv')">🔍 ITV</div>
       <div class="tab"        data-tab="balance"        onclick="setTab('balance')">💰 Balance</div>
     </div>
     <div class="content" id="content"><div class="empty">🔧<br>Cargando...</div></div>
@@ -294,7 +295,7 @@ function render(){
   }
   tabs.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
   const v=curV();if(!v)return;
-  const map={dashboard,resumen,arreglos,aceite,ruedas,mantenimientos,referencias,combustible,tareas,fotos,documentos,balance};
+  const map={dashboard,resumen,arreglos,aceite,ruedas,mantenimientos,referencias,combustible,tareas,fotos,documentos,itv,balance};
   cnt.innerHTML=(map[currentTab]||resumen)(v);
 }
 function toggleVlist(){document.getElementById('vlist').classList.toggle('open');}
@@ -556,6 +557,65 @@ function tareaForm(r){
 }
 function editTarea(vid,tid){modal(tareaForm((curV()?.tareas||[]).find(x=>x.id===tid)||{}));}
 function saveTarea(vid,id=null){const v=vehicles.find(x=>x.id===vid);if(!v)return;v.tareas=v.tareas||[];const ex=id?(v.tareas.find(x=>x.id===id)||{}):{}; const rec={id:id||uid(),tipo:document.getElementById('f_tipo')?.value,fecha:gf('fecha'),observaciones:document.getElementById('f_obs')?.value,done:ex.done||false};if(id){const i=v.tareas.findIndex(x=>x.id===id);v.tareas[i]=rec;}else v.tareas.push(rec);scheduleSave(vid);closeModal();render();}
+function itv(v){
+  const registros=v.itvRegistros||[];
+  const rows=registros.map(r=>{
+    const fav=r.resultado==='Favorable';
+    const fallos=r.fallos||[];
+    const fallosHtml=fallos.length?fallos.map(f=>`<div style="margin-top:3px"><span class="badge ${f.tipo==='Grave'?'b-danger':'b-warn'}">${f.tipo}</span> <span style="font-family:monospace;font-size:11px">${esc(f.codigo)}</span> — ${esc(f.motivo)}</div>`).join(''):'—';
+    return `<tr><td><span class="badge ${fav?'b-ok':'b-danger'}">${esc(r.resultado)}</span></td><td>${esc(r.fecha)}</td><td>${r.kms?Number(r.kms).toLocaleString():'—'}</td><td>${fallosHtml}</td><td><div class="acell"><button class="edt-btn" onclick="editITV('${v.id}','${r.id}')">Edit</button><button class="del-btn" onclick="delRec('itvRegistros','${r.id}')">×</button></div></td></tr>`;
+  }).join('');
+  return `<div class="sec-hdr"><div class="sec-title">Historial de ITVs</div><button class="add-btn" onclick="addITV('${v.id}')">+ Añadir ITV</button></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Resultado</th><th>Fecha</th><th>Km</th><th>Fallos detectados</th><th></th></tr></thead><tbody>${rows||noRows(5)}</tbody></table></div>`;
+}
+
+let _itvFallos=[];
+function itvFallosForm(fallos){
+  return (fallos||[]).map((f,i)=>`<div style="background:#f8f8f6;border:1px solid #e5e5e2;border-radius:8px;padding:10px;margin-top:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:12px;font-weight:600">Fallo ${i+1}</span><button type="button" class="del-btn" onclick="removeFallo(${i})">× Quitar</button></div>
+    <div class="fg"><div class="ff"><label>Tipo</label><select id="fallo-tipo-${i}"><option ${f.tipo==='Leve'?'selected':''}>Leve</option><option ${f.tipo==='Grave'?'selected':''}>Grave</option></select></div>
+    <div class="ff"><label>Código</label><input type="text" id="fallo-cod-${i}" value="${esc(f.codigo||'')}" placeholder="ej. 1.2.3"></div>
+    <div class="ff s2"><label>Motivo</label><input type="text" id="fallo-mot-${i}" value="${esc(f.motivo||'')}"></div></div>
+  </div>`).join('');
+}
+
+function addITV(vid){
+  _itvFallos=[];
+  modal(`<div class="modal"><div class="modal-title">Nueva ITV</div><div class="fg">
+    <div class="ff"><label>Resultado</label><select id="f_resultado"><option>Favorable</option><option>Desfavorable</option></select></div>
+    ${fi('fecha','Fecha','','date')}${fi('kms','Km','','number')}
+  </div><div style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+    <label style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase">Fallos detectados</label>
+    <button type="button" class="add-btn" onclick="addFallo()" style="font-size:11px;padding:3px 9px">+ Añadir fallo</button>
+  </div><div id="fallos-container"></div></div>
+  <div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveITV('${vid}')">Guardar</button></div></div>`);
+}
+
+function editITV(vid,rid){
+  const v=vehicles.find(x=>x.id===vid);if(!v)return;
+  const r=(v.itvRegistros||[]).find(x=>x.id===rid)||{};
+  _itvFallos=[...(r.fallos||[])];
+  modal(`<div class="modal"><div class="modal-title">Editar ITV</div><div class="fg">
+    <div class="ff"><label>Resultado</label><select id="f_resultado"><option ${r.resultado==='Favorable'?'selected':''}>Favorable</option><option ${r.resultado==='Desfavorable'?'selected':''}>Desfavorable</option></select></div>
+    ${fi('fecha','Fecha',r.fecha,'date')}${fi('kms','Km',r.kms,'number')}
+  </div><div style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+    <label style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase">Fallos detectados</label>
+    <button type="button" class="add-btn" onclick="addFallo()" style="font-size:11px;padding:3px 9px">+ Añadir fallo</button>
+  </div><div id="fallos-container">${itvFallosForm(_itvFallos)}</div></div>
+  <div class="mact"><button class="btn-c" onclick="closeModal()">Cancelar</button><button class="btn-s" onclick="saveITV('${vid}','${rid}')">Guardar</button></div></div>`);
+}
+
+function addFallo(){_itvFallos.push({tipo:'Leve',codigo:'',motivo:''});document.getElementById('fallos-container').innerHTML=itvFallosForm(_itvFallos);}
+function removeFallo(i){_itvFallos.splice(i,1);document.getElementById('fallos-container').innerHTML=itvFallosForm(_itvFallos);}
+function saveITV(vid,id=null){
+  const v=vehicles.find(x=>x.id===vid);if(!v)return;
+  v.itvRegistros=v.itvRegistros||[];
+  const fallos=_itvFallos.map((f,i)=>({tipo:document.getElementById(`fallo-tipo-${i}`)?.value||f.tipo,codigo:document.getElementById(`fallo-cod-${i}`)?.value||'',motivo:document.getElementById(`fallo-mot-${i}`)?.value||''})).filter(f=>f.motivo||f.codigo);
+  const rec={id:id||uid(),resultado:document.getElementById('f_resultado')?.value,fecha:gf('fecha'),kms:gf('kms'),fallos};
+  if(id){const i=v.itvRegistros.findIndex(x=>x.id===id);v.itvRegistros[i]=rec;}else v.itvRegistros.push(rec);
+  scheduleSave(vid);closeModal();render();
+}
+
 function balance(v){
   const allYears=[...(v.arreglos||[]),(v.aceite||[]),(v.ruedas||[]),(v.histMantenimientos||[]),(v.combustible||[])].flat().map(r=>r.fecha?.slice(0,4)).filter(Boolean);
   const years=[...new Set(allYears)].sort((a,b)=>b-a);
