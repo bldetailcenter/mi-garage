@@ -616,6 +616,7 @@ function saveITV(vid,id=null){
   scheduleSave(vid);closeModal();render();
 }
 
+function doneTask(vid,tid){const v=vehicles.find(x=>x.id===vid);if(!v)return;const t=(v.tareas||[]).find(x=>x.id===tid);if(t){t.done=true;scheduleSave(vid);render();}}
 function balance(v){
   const allYears=[...(v.arreglos||[]),(v.aceite||[]),(v.ruedas||[]),(v.histMantenimientos||[]),(v.combustible||[])].flat().map(r=>r.fecha?.slice(0,4)).filter(Boolean);
   const years=[...new Set(allYears)].sort((a,b)=>b-a);
